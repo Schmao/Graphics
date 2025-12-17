@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNM-23-033 HVAC EUI Heatmap</title>
+  <title>CNM-23-033 暖通能耗强度热力图</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -27,7 +27,7 @@
     // ============================================
     const { useState, useMemo } = React;
 
-    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     const HOURS = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
     // YlOrRd color interpolation
@@ -129,16 +129,16 @@
               <p className="font-bold text-gray-100 mb-1">
                 {MONTHS[hoveredCell.month - 1]} @ {HOURS[hoveredCell.hour]}
               </p>
-              <p>EUI: <span className="font-semibold text-blue-400">{hoveredCell.mean?.toFixed(2) || 0} Wh/m²</span></p>
-              <p className="text-gray-500">Std Dev: ±{hoveredCell.std?.toFixed(2) || 0}</p>
-              <p className="text-gray-500">Samples: {hoveredCell.count || 0} days</p>
+              <p>能耗强度: <span className="font-semibold text-blue-400">{hoveredCell.mean?.toFixed(2) || 0} Wh/m²</span></p>
+              <p className="text-gray-500">标准偏差: ±{hoveredCell.std?.toFixed(2) || 0}</p>
+              <p className="text-gray-500">样本数: {hoveredCell.count || 0} 天</p>
             </div>
           )}
           
           {/* Stats */}
           <div className="flex justify-center gap-6 mt-3 text-sm text-gray-500">
-            <span>Max: <span className="font-semibold">{data.max_eui}</span> Wh/m²</span>
-            <span>Min: <span className="font-semibold">{data.min_eui}</span> Wh/m²</span>
+            <span>最大值: <span className="font-semibold">{data.max_eui}</span> Wh/m²</span>
+            <span>最小值: <span className="font-semibold">{data.min_eui}</span> Wh/m²</span>
           </div>
         </div>
       );
@@ -156,12 +156,12 @@
             <div className="flex flex-wrap justify-around gap-8">
               <Heatmap 
                 data={vizData.buildings.B1} 
-                title="B1: Building 1" 
+                title="B1: 1号楼" 
                 vmax={vmax} 
               />
               <Heatmap 
                 data={vizData.buildings.B2} 
-                title="B2: Building 2" 
+                title="B2: 2号楼" 
                 vmax={vmax} 
               />
             </div>
@@ -178,7 +178,7 @@
           
           {/* Footer */}
           <div className="mt-4 text-xs text-gray-500 text-center">
-            EUI = Energy Use Intensity (Wh/m²) | Hover cells for details | Generated Dec 2025
+            EUI = 能耗强度 (Wh/m²) | 悬停单元格查看详情 | 生成于 2025年12月
           </div>
         </div>
       );
