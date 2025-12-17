@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNM-23-033 VRV Energy Model (5P)</title>
+  <title>CNM-23-033 VRV能耗模型（5P）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -29,14 +29,14 @@
       "electricity_rate": 0.72,
       "buildings": {
         "B1": {
-          "name": "Building 1 (Teaching)",
+          "name": "1号楼（教学楼）",
           "beta_0": 3624, "beta_c": 39.56, "beta_h": 30.59,
           "r_squared": 0.6427, "cv_rmse_pct": 33.22, "nmbe_pct": 0.01,
           "gfa_m2": 17747, "baseline_kwh": 128973, "baseload_kw": 5.0,
           "devices": 69, "controlled_kw": 625, "floors": "2F, 3F, 5F"
         },
         "B2": {
-          "name": "Building 2 (Mixed-Use)",
+          "name": "2号楼（综合楼）",
           "beta_0": 7103, "beta_c": 98.98, "beta_h": 61.79,
           "r_squared": 0.88, "cv_rmse_pct": 19.45, "nmbe_pct": 0.00,
           "gfa_m2": 9770, "baseline_kwh": 288704, "baseload_kw": 9.9,
@@ -50,36 +50,36 @@
       },
       "seasons": { "cooling": "Apr-Oct", "heating": "Nov-Mar" },
       "monthly_data": [
-        {"building":"B1","date":"2024-12","date_label":"Dec 2024","year":"Y1","consumption":8439,"predicted":7685,"residual":754,"CDD_18":0.0,"HDD_14":132.76,"avg_temp":6.2},
-        {"building":"B1","date":"2025-01","date_label":"Jan 2025","year":"Y1","consumption":10306,"predicted":10311,"residual":-5,"CDD_18":0.0,"HDD_14":218.59,"avg_temp":6.9},
-        {"building":"B1","date":"2025-02","date_label":"Feb 2025","year":"Y1","consumption":9983,"predicted":10137,"residual":-154,"CDD_18":0.0,"HDD_14":212.9,"avg_temp":6.4},
-        {"building":"B1","date":"2025-03","date_label":"Mar 2025","year":"Y1","consumption":8476,"predicted":7564,"residual":911,"CDD_18":21.3,"HDD_14":101.27,"avg_temp":12.5},
-        {"building":"B1","date":"2025-04","date_label":"Apr 2025","year":"Y1","consumption":5354,"predicted":6044,"residual":-691,"CDD_18":58.82,"HDD_14":3.05,"avg_temp":19.2},
-        {"building":"B1","date":"2025-05","date_label":"May 2025","year":"Y1","consumption":9836,"predicted":9263,"residual":573,"CDD_18":142.54,"HDD_14":0.0,"avg_temp":22.6},
-        {"building":"B1","date":"2025-06","date_label":"Jun 2025","year":"Y1","consumption":14178,"predicted":13115,"residual":1063,"CDD_18":239.92,"HDD_14":0.0,"avg_temp":26.0},
-        {"building":"B1","date":"2025-07","date_label":"Jul 2025","year":"Y2","consumption":10124,"predicted":18257,"residual":-8133,"CDD_18":369.89,"HDD_14":0.0,"avg_temp":29.9},
-        {"building":"B1","date":"2025-08","date_label":"Aug 2025","year":"Y2","consumption":19403,"predicted":20444,"residual":-1042,"CDD_18":425.19,"HDD_14":0.0,"avg_temp":31.7},
-        {"building":"B1","date":"2025-09","date_label":"Sep 2025","year":"Y2","consumption":26062,"predicted":16578,"residual":9484,"CDD_18":327.45,"HDD_14":0.0,"avg_temp":28.9},
-        {"building":"B1","date":"2025-10","date_label":"Oct 2025","year":"Y2","consumption":10256,"predicted":10045,"residual":211,"CDD_18":162.3,"HDD_14":0.0,"avg_temp":23.0},
-        {"building":"B1","date":"2025-11","date_label":"Nov 2025","year":"Y2","consumption":3977,"predicted":4830,"residual":-853,"CDD_18":2.63,"HDD_14":36.02,"avg_temp":14.6},
-        {"building":"B1","date":"2025-12","date_label":"Dec 2025","year":"Y2","consumption":3329,"predicted":5440,"residual":-2111,"CDD_18":0.0,"HDD_14":59.35,"avg_temp":10.4},
-        {"building":"B2","date":"2024-12","date_label":"Dec 2024","year":"Y1","consumption":18496,"predicted":15306,"residual":3190,"CDD_18":0.0,"HDD_14":132.76,"avg_temp":6.2},
-        {"building":"B2","date":"2025-01","date_label":"Jan 2025","year":"Y1","consumption":21525,"predicted":20610,"residual":915,"CDD_18":0.0,"HDD_14":218.59,"avg_temp":6.9},
-        {"building":"B2","date":"2025-02","date_label":"Feb 2025","year":"Y1","consumption":17718,"predicted":20258,"residual":-2540,"CDD_18":0.0,"HDD_14":212.9,"avg_temp":6.4},
-        {"building":"B2","date":"2025-03","date_label":"Mar 2025","year":"Y1","consumption":16155,"predicted":15468,"residual":686,"CDD_18":21.3,"HDD_14":101.27,"avg_temp":12.5},
-        {"building":"B2","date":"2025-04","date_label":"Apr 2025","year":"Y1","consumption":12838,"predicted":13114,"residual":-276,"CDD_18":58.82,"HDD_14":3.05,"avg_temp":19.2},
-        {"building":"B2","date":"2025-05","date_label":"May 2025","year":"Y1","consumption":19274,"predicted":21211,"residual":-1937,"CDD_18":142.54,"HDD_14":0.0,"avg_temp":22.6},
-        {"building":"B2","date":"2025-06","date_label":"Jun 2025","year":"Y1","consumption":28142,"predicted":30850,"residual":-2709,"CDD_18":239.92,"HDD_14":0.0,"avg_temp":26.0},
-        {"building":"B2","date":"2025-07","date_label":"Jul 2025","year":"Y2","consumption":43960,"predicted":43715,"residual":245,"CDD_18":369.89,"HDD_14":0.0,"avg_temp":29.9},
-        {"building":"B2","date":"2025-08","date_label":"Aug 2025","year":"Y2","consumption":40862,"predicted":49188,"residual":-8326,"CDD_18":425.19,"HDD_14":0.0,"avg_temp":31.7},
-        {"building":"B2","date":"2025-09","date_label":"Sep 2025","year":"Y2","consumption":52926,"predicted":39514,"residual":13412,"CDD_18":327.45,"HDD_14":0.0,"avg_temp":28.9},
-        {"building":"B2","date":"2025-10","date_label":"Oct 2025","year":"Y2","consumption":23082,"predicted":23168,"residual":-86,"CDD_18":162.3,"HDD_14":0.0,"avg_temp":23.0},
-        {"building":"B2","date":"2025-11","date_label":"Nov 2025","year":"Y2","consumption":9532,"predicted":9589,"residual":-58,"CDD_18":2.63,"HDD_14":36.02,"avg_temp":14.6},
-        {"building":"B2","date":"2025-12","date_label":"Dec 2025","year":"Y2","consumption":8255,"predicted":10770,"residual":-2515,"CDD_18":0.0,"HDD_14":59.35,"avg_temp":10.4}
+        {"building":"B1","date":"2024-12","date_label":"2024年12月","year":"Y1","consumption":8439,"predicted":7685,"residual":754,"CDD_18":0.0,"HDD_14":132.76,"avg_temp":6.2},
+        {"building":"B1","date":"2025-01","date_label":"2025年1月","year":"Y1","consumption":10306,"predicted":10311,"residual":-5,"CDD_18":0.0,"HDD_14":218.59,"avg_temp":6.9},
+        {"building":"B1","date":"2025-02","date_label":"2025年2月","year":"Y1","consumption":9983,"predicted":10137,"residual":-154,"CDD_18":0.0,"HDD_14":212.9,"avg_temp":6.4},
+        {"building":"B1","date":"2025-03","date_label":"2025年3月","year":"Y1","consumption":8476,"predicted":7564,"residual":911,"CDD_18":21.3,"HDD_14":101.27,"avg_temp":12.5},
+        {"building":"B1","date":"2025-04","date_label":"2025年4月","year":"Y1","consumption":5354,"predicted":6044,"residual":-691,"CDD_18":58.82,"HDD_14":3.05,"avg_temp":19.2},
+        {"building":"B1","date":"2025-05","date_label":"2025年5月","year":"Y1","consumption":9836,"predicted":9263,"residual":573,"CDD_18":142.54,"HDD_14":0.0,"avg_temp":22.6},
+        {"building":"B1","date":"2025-06","date_label":"2025年6月","year":"Y1","consumption":14178,"predicted":13115,"residual":1063,"CDD_18":239.92,"HDD_14":0.0,"avg_temp":26.0},
+        {"building":"B1","date":"2025-07","date_label":"2025年7月","year":"Y2","consumption":10124,"predicted":18257,"residual":-8133,"CDD_18":369.89,"HDD_14":0.0,"avg_temp":29.9},
+        {"building":"B1","date":"2025-08","date_label":"2025年8月","year":"Y2","consumption":19403,"predicted":20444,"residual":-1042,"CDD_18":425.19,"HDD_14":0.0,"avg_temp":31.7},
+        {"building":"B1","date":"2025-09","date_label":"2025年9月","year":"Y2","consumption":26062,"predicted":16578,"residual":9484,"CDD_18":327.45,"HDD_14":0.0,"avg_temp":28.9},
+        {"building":"B1","date":"2025-10","date_label":"2025年10月","year":"Y2","consumption":10256,"predicted":10045,"residual":211,"CDD_18":162.3,"HDD_14":0.0,"avg_temp":23.0},
+        {"building":"B1","date":"2025-11","date_label":"2025年11月","year":"Y2","consumption":3977,"predicted":4830,"residual":-853,"CDD_18":2.63,"HDD_14":36.02,"avg_temp":14.6},
+        {"building":"B1","date":"2025-12","date_label":"2025年12月","year":"Y2","consumption":3329,"predicted":5440,"residual":-2111,"CDD_18":0.0,"HDD_14":59.35,"avg_temp":10.4},
+        {"building":"B2","date":"2024-12","date_label":"2024年12月","year":"Y1","consumption":18496,"predicted":15306,"residual":3190,"CDD_18":0.0,"HDD_14":132.76,"avg_temp":6.2},
+        {"building":"B2","date":"2025-01","date_label":"2025年1月","year":"Y1","consumption":21525,"predicted":20610,"residual":915,"CDD_18":0.0,"HDD_14":218.59,"avg_temp":6.9},
+        {"building":"B2","date":"2025-02","date_label":"2025年2月","year":"Y1","consumption":17718,"predicted":20258,"residual":-2540,"CDD_18":0.0,"HDD_14":212.9,"avg_temp":6.4},
+        {"building":"B2","date":"2025-03","date_label":"2025年3月","year":"Y1","consumption":16155,"predicted":15468,"residual":686,"CDD_18":21.3,"HDD_14":101.27,"avg_temp":12.5},
+        {"building":"B2","date":"2025-04","date_label":"2025年4月","year":"Y1","consumption":12838,"predicted":13114,"residual":-276,"CDD_18":58.82,"HDD_14":3.05,"avg_temp":19.2},
+        {"building":"B2","date":"2025-05","date_label":"2025年5月","year":"Y1","consumption":19274,"predicted":21211,"residual":-1937,"CDD_18":142.54,"HDD_14":0.0,"avg_temp":22.6},
+        {"building":"B2","date":"2025-06","date_label":"2025年6月","year":"Y1","consumption":28142,"predicted":30850,"residual":-2709,"CDD_18":239.92,"HDD_14":0.0,"avg_temp":26.0},
+        {"building":"B2","date":"2025-07","date_label":"2025年7月","year":"Y2","consumption":43960,"predicted":43715,"residual":245,"CDD_18":369.89,"HDD_14":0.0,"avg_temp":29.9},
+        {"building":"B2","date":"2025-08","date_label":"2025年8月","year":"Y2","consumption":40862,"predicted":49188,"residual":-8326,"CDD_18":425.19,"HDD_14":0.0,"avg_temp":31.7},
+        {"building":"B2","date":"2025-09","date_label":"2025年9月","year":"Y2","consumption":52926,"predicted":39514,"residual":13412,"CDD_18":327.45,"HDD_14":0.0,"avg_temp":28.9},
+        {"building":"B2","date":"2025-10","date_label":"2025年10月","year":"Y2","consumption":23082,"predicted":23168,"residual":-86,"CDD_18":162.3,"HDD_14":0.0,"avg_temp":23.0},
+        {"building":"B2","date":"2025-11","date_label":"2025年11月","year":"Y2","consumption":9532,"predicted":9589,"residual":-58,"CDD_18":2.63,"HDD_14":36.02,"avg_temp":14.6},
+        {"building":"B2","date":"2025-12","date_label":"2025年12月","year":"Y2","consumption":8255,"predicted":10770,"residual":-2515,"CDD_18":0.0,"HDD_14":59.35,"avg_temp":10.4}
       ],
       "annual_summary": [
-        {"building":"B1","period":"Dec 2024 – Dec 2025","n_months":13,"total_kwh":128975,"eui":7.3,"total_cdd":1615,"total_hdd":705,"e_cooling_kwh":63906,"e_heating_kwh":21571,"e_baseload_kwh":43488,"cooling_pct":49.6,"heating_pct":16.7,"baseload_pct":33.7,"cost_cny":92862},
-        {"building":"B2","period":"Dec 2024 – Dec 2025","n_months":13,"total_kwh":288706,"eui":29.6,"total_cdd":1615,"total_hdd":705,"e_cooling_kwh":159894,"e_heating_kwh":43573,"e_baseload_kwh":85236,"cooling_pct":55.4,"heating_pct":15.1,"baseload_pct":29.5,"cost_cny":207868}
+        {"building":"B1","period":"2024年12月 – 2025年12月","n_months":13,"total_kwh":128975,"eui":7.3,"total_cdd":1615,"total_hdd":705,"e_cooling_kwh":63906,"e_heating_kwh":21571,"e_baseload_kwh":43488,"cooling_pct":49.6,"heating_pct":16.7,"baseload_pct":33.7,"cost_cny":92862},
+        {"building":"B2","period":"2024年12月 – 2025年12月","n_months":13,"total_kwh":288706,"eui":29.6,"total_cdd":1615,"total_hdd":705,"e_cooling_kwh":159894,"e_heating_kwh":43573,"e_baseload_kwh":85236,"cooling_pct":55.4,"heating_pct":15.1,"baseload_pct":29.5,"cost_cny":207868}
       ]
     };
 
@@ -99,15 +99,15 @@
           <div className="bg-gray-800 p-3 border border-gray-600 rounded shadow-lg text-sm">
             <p className="font-bold text-gray-100 mb-2">{data.date_label}</p>
             <div className="space-y-1">
-              <p className="text-gray-200"><span className="text-blue-400">●</span> Actual: <span className="font-semibold">{formatNumber(data.consumption)} kWh</span></p>
-              <p className="text-gray-200"><span className="text-red-400">●</span> Predicted: <span className="font-semibold">{formatNumber(data.predicted)} kWh</span></p>
-              <p className="text-gray-200"><span className="text-gray-400">●</span> Residual: <span className={`font-semibold ${data.residual >= 0 ? 'text-amber-400' : 'text-green-400'}`}>
+              <p className="text-gray-200"><span className="text-blue-400">●</span>实际值: <span className="font-semibold">{formatNumber(data.consumption)} kWh</span></p>
+              <p className="text-gray-200"><span className="text-red-400">●</span>预测值: <span className="font-semibold">{formatNumber(data.predicted)} kWh</span></p>
+              <p className="text-gray-200"><span className="text-gray-400">●</span>残差: <span className={`font-semibold ${data.residual >= 0 ? 'text-amber-400' : 'text-green-400'}`}>
                 {data.residual >= 0 ? '+' : ''}{formatNumber(data.residual)} ({residualPct >= 0 ? '+' : ''}{residualPct.toFixed(1)}%)
               </span></p>
               <hr className="my-1 border-gray-600" />
               <p className="text-blue-400">CDD₁₈: {data.CDD_18.toFixed(1)}</p>
               <p className="text-red-400">HDD₁₄: {data.HDD_14.toFixed(1)}</p>
-              <p className="text-gray-300">Avg Temp: {data.avg_temp}°C</p>
+              <p className="text-gray-300">平均温度: {data.avg_temp}°C</p>
             </div>
           </div>
         );
@@ -122,7 +122,7 @@
           <div className="bg-gray-800 p-3 border border-gray-600 rounded shadow-lg text-sm">
             <p className="font-bold text-gray-100 mb-2">{data.date_label}</p>
             <div className="space-y-1">
-              <p className="text-gray-200">Residual: <span className={`font-semibold ${data.residual >= 0 ? 'text-amber-400' : 'text-green-400'}`}>
+              <p className="text-gray-200">残差: <span className={`font-semibold ${data.residual >= 0 ? 'text-amber-400' : 'text-green-400'}`}>
                 {data.residual >= 0 ? '+' : ''}{formatNumber(data.residual)} kWh
               </span></p>
               <p className="text-blue-400">CDD₁₈: {data.CDD_18.toFixed(1)}</p>
@@ -178,7 +178,7 @@
           <div className="bg-gray-800 rounded-lg shadow p-4 mb-4">
             <div className="flex flex-wrap gap-6 items-center">
               <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-300">Building:</label>
+                <label className="text-sm font-medium text-gray-300">楼栋:</label>
                 <div className="flex items-center gap-2">
                   {['B1', 'B2'].map(bldg => (
                     <button key={bldg} onClick={() => setSelectedBuilding(bldg)}
@@ -196,40 +196,40 @@
 
           {/* Chart 1: Actual vs Predicted */}
           <div className="bg-gray-800 rounded-lg shadow p-4 mb-4">
-            <h2 className="text-lg font-semibold text-gray-100 mb-2">Actual vs Predicted Consumption</h2>
+            <h2 className="text-lg font-semibold text-gray-100 mb-2">实际与预测能耗对比</h2>
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="date_label" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={0} angle={-45} textAnchor="end" stroke="#4B5563" />
-                <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: 'kWh (thousands)', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#9CA3AF' }} tickFormatter={(v) => v.toFixed(0)} stroke="#4B5563" />
+                <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: '能耗（千瓦时/千）', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#9CA3AF' }} tickFormatter={(v) => v.toFixed(0)} stroke="#4B5563" />
                 <Tooltip content={<CustomTooltip building={selectedBuilding} />} />
                 <Legend verticalAlign="top" height={36} wrapperStyle={{ color: '#E5E7EB' }} />
-                <ReferenceLine y={currentModel.beta_0 / 1000} stroke="#6B7280" strokeWidth={1.5} strokeDasharray="6 3" label={{ value: `Baseload: ${(currentModel.beta_0/1000).toFixed(1)}k = ${currentModel.baseload_kw} kW`, position: 'right', fontSize: 10, fill: '#9CA3AF' }} />
-                <Line type="monotone" dataKey="consumptionK" stroke="#60A5FA" strokeWidth={2} dot={{ r: 4, fill: '#60A5FA' }} name="Actual" />
-                <Line type="monotone" dataKey="predictedK" stroke="#F87171" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Predicted" />
+                <ReferenceLine y={currentModel.beta_0 / 1000} stroke="#6B7280" strokeWidth={1.5} strokeDasharray="6 3" label={{ value: `基础负荷: ${(currentModel.beta_0/1000).toFixed(1)}k = ${currentModel.baseload_kw} kW`, position: 'right', fontSize: 10, fill: '#9CA3AF' }} />
+                <Line type="monotone" dataKey="consumptionK" stroke="#60A5FA" strokeWidth={2} dot={{ r: 4, fill: '#60A5FA' }} name="实际值" />
+                <Line type="monotone" dataKey="predictedK" stroke="#F87171" strokeWidth={2} strokeDasharray="5 5" dot={false} name="预测值" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
 
           {/* Chart 2: Residuals with Dual Degree Days */}
           <div className="bg-gray-800 rounded-lg shadow p-4 mb-4">
-            <h2 className="text-lg font-semibold text-gray-100 mb-2">Residuals & Degree Days</h2>
+            <h2 className="text-lg font-semibold text-gray-100 mb-2">残差与度日</h2>
             <ResponsiveContainer width="100%" height={220}>
               <ComposedChart data={chartData} margin={{ top: 10, right: 60, left: 10, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="date_label" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={0} angle={-45} textAnchor="end" stroke="#4B5563" />
-                <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: 'Residual (thousands)', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(v) => v.toFixed(0)} stroke="#4B5563" />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: 'Degree Days', angle: 90, position: 'insideRight', fontSize: 10, fill: '#9CA3AF' }} stroke="#4B5563" />
+                <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: '残差（千）', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(v) => v.toFixed(0)} stroke="#4B5563" />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: '度日', angle: 90, position: 'insideRight', fontSize: 10, fill: '#9CA3AF' }} stroke="#4B5563" />
                 <Tooltip content={<ResidualTooltip />} />
                 <Legend verticalAlign="top" height={36} wrapperStyle={{ color: '#E5E7EB' }} />
                 <ReferenceArea yAxisId="left" y1={-rmseK} y2={rmseK} fill="#22c55e" fillOpacity={0.15} />
                 <ReferenceLine yAxisId="left" y={0} stroke="#1e3a5f" strokeWidth={1.5} />
-                <Bar yAxisId="left" dataKey="residualK" name="Residual" fill="#60a5fa" stroke="#3b82f6" />
+                <Bar yAxisId="left" dataKey="residualK" name="残差" fill="#60a5fa" stroke="#3b82f6" />
                 <Line yAxisId="right" type="monotone" dataKey="CDD_18" stroke="#60A5FA" strokeWidth={2} strokeDasharray="4 2" dot={false} name="CDD₁₈" />
                 <Line yAxisId="right" type="monotone" dataKey="HDD_14" stroke="#F87171" strokeWidth={2} strokeDasharray="4 2" dot={false} name="HDD₁₄" />
               </ComposedChart>
             </ResponsiveContainer>
-            <p className="text-xs text-gray-400 mt-1 text-center">Green band = ±RMSE ({formatNumber(rmse)} kWh)</p>
+            <p className="text-xs text-gray-400 mt-1 text-center">绿色区域 = ±均方根误差 ({formatNumber(rmse)} 千瓦时)</p>
           </div>
 
           {/* Model Stats & Energy Breakdown */}
@@ -237,7 +237,7 @@
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Model Equation */}
               <div className="md:col-span-1">
-                <h3 className="text-sm font-semibold text-gray-200 mb-2">5P Model Equation</h3>
+                <h3 className="text-sm font-semibold text-gray-200 mb-2">5P模型方程</h3>
                 <div className="bg-gray-700 rounded p-2 font-mono text-xs leading-relaxed text-gray-200">
                   E = <span className="text-gray-300">{currentModel.beta_0.toLocaleString()}</span>
                   <span className="text-gray-400"> + </span>
@@ -247,17 +247,17 @@
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <div className="bg-gray-700 rounded p-2">
-                    <p className="text-xs text-gray-400">β₀</p>
+                    <p className="text-xs text-gray-400">基础负荷 β₀</p>
                     <p className="text-sm font-bold text-gray-200">{(currentModel.beta_0/1000).toFixed(1)}k</p>
                     <p className="text-xs text-gray-500">{currentModel.baseload_kw} kW</p>
                   </div>
                   <div className="bg-blue-900/50 rounded p-2">
-                    <p className="text-xs text-gray-400">β_c</p>
+                    <p className="text-xs text-gray-400">制冷系数 β_c</p>
                     <p className="text-sm font-bold text-blue-400">{currentModel.beta_c}</p>
                     <p className="text-xs text-gray-500">kWh/CDD</p>
                   </div>
                   <div className="bg-red-900/50 rounded p-2">
-                    <p className="text-xs text-gray-400">β_h</p>
+                    <p className="text-xs text-gray-400">供暖系数 β_h</p>
                     <p className="text-sm font-bold text-red-400">{currentModel.beta_h}</p>
                     <p className="text-xs text-gray-500">kWh/HDD</p>
                   </div>
@@ -276,25 +276,25 @@
                   <div className={`rounded p-2 ${currentModel.cv_rmse_pct <= 25 ? 'bg-amber-900/50' : 'bg-red-900/50'}`}>
                     <p className="text-xs text-gray-400">CV(RMSE)</p>
                     <p className={`text-base font-bold ${g14Color}`}>{currentModel.cv_rmse_pct.toFixed(1)}%</p>
-                    <p className="text-xs text-gray-500">G-14 ≤15% monthly</p>
+                    <p className="text-xs text-gray-500">G-14标准 ≤15%（月度）</p>
                   </div>
                 </div>
               </div>
 
               {/* Energy Breakdown */}
               <div className="md:col-span-2">
-                <h3 className="text-sm font-semibold text-gray-200 mb-2">Annual Energy Breakdown</h3>
+                <h3 className="text-sm font-semibold text-gray-200 mb-2">年度能耗分解</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-700">
-                        <th className="px-2 py-1 text-left text-gray-200">Building</th>
-                        <th className="px-2 py-1 text-right text-gray-200">Total<br/><span className="font-normal text-gray-400">(kWh/yr)</span></th>
-                        <th className="px-2 py-1 text-right text-gray-200">EUI<br/><span className="font-normal text-gray-400">(kWh/m²)</span></th>
-                        <th className="px-2 py-1 text-right text-gray-200">Baseload<br/><span className="font-normal text-gray-400">(%)</span></th>
-                        <th className="px-2 py-1 text-right text-gray-200">Cooling<br/><span className="font-normal text-gray-400">(%)</span></th>
-                        <th className="px-2 py-1 text-right text-gray-200">Heating<br/><span className="font-normal text-gray-400">(%)</span></th>
-                        <th className="px-2 py-1 text-right text-gray-200">Cost<br/><span className="font-normal text-gray-400">(CNY)</span></th>
+                        <th className="px-2 py-1 text-left text-gray-200">楼栋</th>
+                        <th className="px-2 py-1 text-right text-gray-200">总计<br/><span className="font-normal text-gray-400">(kWh/yr)</span></th>
+                        <th className="px-2 py-1 text-right text-gray-200">能耗强度<br/><span className="font-normal text-gray-400">(kWh/m²)</span></th>
+                        <th className="px-2 py-1 text-right text-gray-200">基础负荷<br/><span className="font-normal text-gray-400">(%)</span></th>
+                        <th className="px-2 py-1 text-right text-gray-200">制冷<br/><span className="font-normal text-gray-400">(%)</span></th>
+                        <th className="px-2 py-1 text-right text-gray-200">供暖<br/><span className="font-normal text-gray-400">(%)</span></th>
+                        <th className="px-2 py-1 text-right text-gray-200">费用<br/><span className="font-normal text-gray-400">(CNY)</span></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -310,7 +310,7 @@
                         </tr>
                       ))}
                       <tr className="border-t-2 border-gray-600 font-semibold bg-gray-700">
-                        <td className="px-2 py-1.5 text-gray-200">Combined</td>
+                        <td className="px-2 py-1.5 text-gray-200">合计</td>
                         <td className="px-2 py-1.5 text-right text-gray-200">{formatNumber(combinedAnnual.total_kwh)}</td>
                         <td className="px-2 py-1.5 text-right text-gray-200">{(combinedAnnual.total_kwh / vizData.combined.gfa_m2).toFixed(1)}</td>
                         <td className="px-2 py-1.5 text-right text-gray-400">{(combinedAnnual.e_baseload_kwh / combinedAnnual.total_kwh * 100).toFixed(1)}%</td>
@@ -324,34 +324,34 @@
 
                 {/* Uncertainty & MDS */}
                 <div className="mt-4 pt-4 border-t border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-200 mb-2">Uncertainty & Minimum Detectable Savings</h3>
+                  <h3 className="text-sm font-semibold text-gray-200 mb-2">不确定性与最小可检测节能量</h3>
                   <div className="grid grid-cols-4 gap-3 text-center">
                     <div className="bg-gray-700 rounded p-2">
-                      <p className="text-xs text-gray-400">Baseline</p>
+                      <p className="text-xs text-gray-400">基准</p>
                       <p className="text-sm font-bold text-gray-200">{formatNumber(vizData.combined.baseline_kwh)}</p>
                       <p className="text-xs text-gray-500">kWh/yr</p>
                     </div>
                     <div className="bg-gray-700 rounded p-2">
                       <p className="text-xs text-gray-400">U_total</p>
                       <p className="text-sm font-bold text-gray-200">{vizData.combined.u_total_pct}%</p>
-                      <p className="text-xs text-gray-500">combined</p>
+                      <p className="text-xs text-gray-500">综合</p>
                     </div>
                     <div className="bg-amber-900/50 rounded p-2">
-                      <p className="text-xs text-gray-400">MDS</p>
+                      <p className="text-xs text-gray-400">最小可检测节能量</p>
                       <p className="text-sm font-bold text-amber-400">{formatNumber(vizData.combined.mds_kwh)}</p>
                       <p className="text-xs text-gray-500">13.3%</p>
                     </div>
                     <div className="bg-amber-900/50 rounded p-2">
-                      <p className="text-xs text-gray-400">MDS Cost</p>
+                      <p className="text-xs text-gray-400">最小可检测节能成本</p>
                       <p className="text-sm font-bold text-amber-400">{formatCurrency(vizData.combined.mds_cny)}</p>
-                      <p className="text-xs text-gray-500">threshold</p>
+                      <p className="text-xs text-gray-500">阈值</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Control Scope */}
                 <div className="mt-4 pt-4 border-t border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-200 mb-2">Control Scope</h3>
+                  <h3 className="text-sm font-semibold text-gray-200 mb-2">控制范围</h3>
                   <div className="flex items-center gap-4">
                     <div className="flex-1 bg-gray-700 rounded-full h-4 overflow-hidden">
                       <div className="bg-blue-500 h-full" style={{ width: `${vizData.combined.control_pct}%` }}></div>
@@ -368,8 +368,8 @@
 
           {/* Footer */}
           <div className="mt-4 flex justify-between text-xs text-gray-500">
-            <span>Seasons: Cooling {vizData.seasons.cooling} · Heating {vizData.seasons.heating} · Rate: ¥{vizData.electricity_rate}/kWh</span>
-            <span>Baseline Period: {vizData.baseline_period.start} to {vizData.baseline_period.end}</span>
+            <span>季节：制冷 {vizData.seasons.cooling} · 供暖 {vizData.seasons.heating} · 电价: ¥{vizData.electricity_rate}/千瓦时</span>
+            <span>基准期: {vizData.baseline_period.start} 至 {vizData.baseline_period.end}</span>
           </div>
         </div>
       );
