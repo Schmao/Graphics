@@ -33,42 +33,49 @@
 <body>
   <div id="root"></div>
   <script>
-    const { ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Area } = Recharts;
+    var ComposedChart = Recharts.ComposedChart;
+    var Line = Recharts.Line;
+    var XAxis = Recharts.XAxis;
+    var YAxis = Recharts.YAxis;
+    var Tooltip = Recharts.Tooltip;
+    var ResponsiveContainer = Recharts.ResponsiveContainer;
+    var ReferenceLine = Recharts.ReferenceLine;
+    var Area = Recharts.Area;
 
     function TemperaturePredictionPanel() {
-      const hourlyAvg = { 13: 23.14, 14: 23.30, 15: 23.38, 16: 23.35, 17: 23.22, 18: 22.70, 19: 22.61 };
+      var hourlyAvg = { 13: 23.14, 14: 23.30, 15: 23.38, 16: 23.35, 17: 23.22, 18: 22.70, 19: 22.61 };
       
-      const generateData = () => {
-        const data = [];
-        const currentHour = 16;
+      var generateData = function() {
+        var data = [];
+        var currentHour = 16;
         
-        for (let hour = 13; hour <= 19; hour++) {
-          for (let min = 0; min < 60; min += 30) {
+        for (var hour = 13; hour <= 19; hour++) {
+          for (var min = 0; min < 60; min += 30) {
             if (hour === 19 && min > 0) break;
             
-            const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-            const timeMinutes = hour * 60 + min;
-            const nowMinutes = currentHour * 60;
+            var timeStr = String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+            var timeMinutes = hour * 60 + min;
+            var nowMinutes = currentHour * 60;
             
-            const hourFraction = min / 60;
-            const nextHour = Math.min(hour + 1, 19);
-            const baseTemp = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
+            var hourFraction = min / 60;
+            var nextHour = Math.min(hour + 1, 19);
+            var baseTemp = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
             
-            const variation = Math.sin(timeMinutes * 0.05) * 0.15 + Math.cos(timeMinutes * 0.03) * 0.1;
-            const actual = Math.round((baseTemp + variation) * 10) / 10;
+            var variation = Math.sin(timeMinutes * 0.05) * 0.15 + Math.cos(timeMinutes * 0.03) * 0.1;
+            var actual = Math.round((baseTemp + variation) * 10) / 10;
             
-            const isPast = timeMinutes < nowMinutes;
-            const isNow = timeMinutes === nowMinutes;
-            const isFuture = timeMinutes > nowMinutes;
+            var isPast = timeMinutes < nowMinutes;
+            var isNow = timeMinutes === nowMinutes;
+            var isFuture = timeMinutes > nowMinutes;
             
-            const predictionError = (Math.sin(timeMinutes * 0.02) * 0.2 + Math.cos(timeMinutes * 0.015) * 0.1);
-            const predicted = Math.round((actual + predictionError) * 10) / 10;
+            var predictionError = (Math.sin(timeMinutes * 0.02) * 0.2 + Math.cos(timeMinutes * 0.015) * 0.1);
+            var predicted = Math.round((actual + predictionError) * 10) / 10;
             
-            const forecastBase = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
-            const forecast = Math.round((forecastBase + variation * 0.5) * 10) / 10;
+            var forecastBase = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
+            var forecast = Math.round((forecastBase + variation * 0.5) * 10) / 10;
             
-            const hoursIntoFuture = isFuture ? (timeMinutes - nowMinutes) / 60 : 0;
-            const uncertainty = 0.1 + (hoursIntoFuture * 0.13);
+            var hoursIntoFuture = isFuture ? (timeMinutes - nowMinutes) / 60 : 0;
+            var uncertainty = 0.1 + (hoursIntoFuture * 0.13);
             
             data.push({
               time: timeStr,
@@ -77,25 +84,28 @@
               forecast: isNow ? actual : (isFuture ? forecast : null),
               forecastUpper: (isNow || isFuture) ? Math.round(((isNow ? actual : forecast) + (isNow ? 0 : uncertainty)) * 10) / 10 : null,
               forecastLower: (isNow || isFuture) ? Math.round(((isNow ? actual : forecast) - (isNow ? 0 : uncertainty)) * 10) / 10 : null,
-              isNow
+              isNow: isNow
             });
           }
         }
         return data;
       };
       
-      const data = generateData();
+      var data = generateData();
       
-      const CustomTooltip = ({ active, payload, label }) => {
+      var CustomTooltip = function(props) {
+        var active = props.active;
+        var payload = props.payload;
+        var label = props.label;
         if (active && payload && payload.length) {
-          const item = payload[0].payload;
+          var item = payload[0].payload;
           return React.createElement('div', { className: 'tooltip' },
             React.createElement('div', { className: 'tooltip-label' }, label),
-            item.actual !== null && React.createElement('div', { className: 'tooltip-actual' }, `Actual: ${item.actual}°C`),
-            item.predicted !== null && !item.isNow && React.createElement('div', { className: 'tooltip-predicted' }, `Predicted: ${item.predicted}°C`),
+            item.actual !== null && React.createElement('div', { className: 'tooltip-actual' }, 'Actual: ' + item.actual + '\u00B0C'),
+            item.predicted !== null && !item.isNow && React.createElement('div', { className: 'tooltip-predicted' }, 'Predicted: ' + item.predicted + '\u00B0C'),
             item.forecast !== null && !item.isNow && React.createElement('div', null,
-              React.createElement('div', { className: 'tooltip-forecast' }, `Forecast: ${item.forecast}°C`),
-              item.forecastUpper && React.createElement('div', { className: 'tooltip-range' }, `Range: ${item.forecastLower}°C - ${item.forecastUpper}°C`)
+              React.createElement('div', { className: 'tooltip-forecast' }, 'Forecast: ' + item.forecast + '\u00B0C'),
+              item.forecastUpper && React.createElement('div', { className: 'tooltip-range' }, 'Range: ' + item.forecastLower + '\u00B0C - ' + item.forecastUpper + '\u00B0C')
             ),
             item.isNow && React.createElement('div', { className: 'tooltip-current' }, 'Current reading')
           );
@@ -108,7 +118,7 @@
           React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
             React.createElement(ComposedChart, { data: data, margin: { top: 5, right: 5, left: -20, bottom: 5 } },
               React.createElement(XAxis, { dataKey: 'time', tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, interval: 1 }),
-              React.createElement(YAxis, { domain: [21.5, 24.5], tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, tickFormatter: (val) => `${val}°` }),
+              React.createElement(YAxis, { domain: [21.5, 24.5], tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, tickFormatter: function(val) { return val + '\u00B0'; } }),
               React.createElement(Tooltip, { content: React.createElement(CustomTooltip) }),
               React.createElement(ReferenceLine, { x: '16:00', stroke: '#6B7280', strokeDasharray: '4 4', label: { value: 'Now', position: 'top', fill: '#9CA3AF', fontSize: 10 } }),
               React.createElement(Area, { type: 'monotone', dataKey: 'forecastUpper', stroke: 'none', fill: '#06B6D4', fillOpacity: 0.15 }),
@@ -140,7 +150,7 @@
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
+    var root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(TemperaturePredictionPanel));
   </script>
 </body>
