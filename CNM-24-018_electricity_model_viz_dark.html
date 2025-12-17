@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNM-24-018 Electricity Energy Model</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
+  <script src="https://unpkg.com/recharts@2.10.1/umd/Recharts.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-900">
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceArea } = Recharts;
+
+    const vizData = {"project_id": "CNM-24-018", "meter_id": "MTR00003+MTR00004", "meter_name": "Electricity - Campus Total", "provider": "State Grid Shanghai", "fuel_type": "electricity", "model_type": "3P-C", "building_name": "NYU Shanghai Qiantan Campus", "gfa_m2": 114000, "baseline_period": {"start": "2023-06-01", "end": "2025-05-31", "n_months": 24}, "selected_balance_point": 18, "balance_points_tested": [18, 20, 22], "degree_day_type": "CDD", "active_season": "Apr-Nov", "emission_factor": 0.7094, "models": {"18": {"beta_0": 1008547.0, "beta": 508.0, "r_squared": 0.5097, "cv_rmse_pct": 6.75, "cv_rmse_active_pct": 5.21, "n_months_active": 16, "nmbe_pct": -0.0, "rmse": 72550.0}, "20": {"beta_0": 1017058.0, "beta": 591.3, "r_squared": 0.4972, "cv_rmse_pct": 6.84, "cv_rmse_active_pct": 5.28, "n_months_active": 16, "nmbe_pct": -0.0, "rmse": 73466.0}, "22": {"beta_0": 1025101.0, "beta": 709.1, "r_squared": 0.4744, "cv_rmse_pct": 6.99, "cv_rmse_active_pct": 5.44, "n_months_active": 16, "nmbe_pct": -0.0, "rmse": 75117.0}}, "monthly_data": [{"date": "2023-06", "date_label": "Jun 2023", "year": "Y1", "consumption": 1105800.0, "avg_temp": 25.9, "degree_days": {"18": 236.51, "20": 176.51, "22": 117.22}}, {"date": "2023-07", "date_label": "Jul 2023", "year": "Y1", "consumption": 1263660.0, "avg_temp": 29.9, "degree_days": {"18": 367.75, "20": 305.75, "22": 243.75}}, {"date": "2023-08", "date_label": "Aug 2023", "year": "Y1", "consumption": 1233030.0, "avg_temp": 29.3, "degree_days": {"18": 351.17, "20": 289.17, "22": 227.17}}, {"date": "2023-09", "date_label": "Sep 2023", "year": "Y1", "consumption": 1202400.0, "avg_temp": 26.3, "degree_days": {"18": 249.6, "20": 189.6, "22": 132.02}}, {"date": "2023-10", "date_label": "Oct 2023", "year": "Y1", "consumption": 1105680.0, "avg_temp": 20.9, "degree_days": {"18": 91.71, "20": 37.72, "22": 7.21}}, {"date": "2023-11", "date_label": "Nov 2023", "year": "Y1", "consumption": 1105020.0, "avg_temp": 14.9, "degree_days": {"18": 25.73, "20": 15.63, "22": 5.63}}, {"date": "2023-12", "date_label": "Dec 2023", "year": "Y1", "consumption": 1098840.0, "avg_temp": 7.5, "degree_days": {"18": 0.0, "20": 0.0, "22": 0.0}}, {"date": "2024-01", "date_label": "Jan 2024", "year": "Y1", "consumption": 1100340.0, "avg_temp": 6.4, "degree_days": {"18": 0.0, "20": 0.0, "22": 0.0}}, {"date": "2024-02", "date_label": "Feb 2024", "year": "Y1", "consumption": 984780.0, "avg_temp": 6.8, "degree_days": {"18": 0.0, "20": 0.0, "22": 0.0}}, {"date": "2024-03", "date_label": "Mar 2024", "year": "Y1", "consumption": 1118280.0, "avg_temp": 11.9, "degree_days": {"18": 4.8, "20": 1.76, "22": 0.0}}, {"date": "2024-04", "date_label": "Apr 2024", "year": "Y1", "consumption": 1019460.0, "avg_temp": 17.3, "degree_days": {"18": 16.43, "20": 1.81, "22": 0.0}}, {"date": "2024-05", "date_label": "May 2024", "year": "Y1", "consumption": 1067160.0, "avg_temp": 21.3, "degree_days": {"18": 106.21, "20": 54.46, "22": 19.53}}, {"date": "2024-06", "date_label": "Jun 2024", "year": "Y2", "consumption": 1007640.0, "avg_temp": 24.7, "degree_days": {"18": 201.04, "20": 141.31, "22": 84.4}}, {"date": "2024-07", "date_label": "Jul 2024", "year": "Y2", "consumption": 1118760.0, "avg_temp": 31.3, "degree_days": {"18": 412.71, "20": 350.71, "22": 288.71}}, {"date": "2024-08", "date_label": "Aug 2024", "year": "Y2", "consumption": 1214640.0, "avg_temp": 31.7, "degree_days": {"18": 425.17, "20": 363.17, "22": 301.17}}, {"date": "2024-09", "date_label": "Sep 2024", "year": "Y2", "consumption": 1185900.0, "avg_temp": 28.1, "degree_days": {"18": 303.3, "20": 243.3, "22": 183.46}}, {"date": "2024-10", "date_label": "Oct 2024", "year": "Y2", "consumption": 1105680.0, "avg_temp": 20.6, "degree_days": {"18": 81.98, "20": 36.65, "22": 12.19}}, {"date": "2024-11", "date_label": "Nov 2024", "year": "Y2", "consumption": 1002780.0, "avg_temp": 15.6, "degree_days": {"18": 13.92, "20": 1.66, "22": 0.0}}, {"date": "2024-12", "date_label": "Dec 2024", "year": "Y2", "consumption": 974820.0, "avg_temp": 7.8, "degree_days": {"18": 0.0, "20": 0.0, "22": 0.0}}, {"date": "2025-01", "date_label": "Jan 2025", "year": "Y2", "consumption": 826790.0, "avg_temp": 7.0, "degree_days": {"18": 0.0, "20": 0.0, "22": 0.0}}, {"date": "2025-02", "date_label": "Feb 2025", "year": "Y2", "consumption": 909720.0, "avg_temp": 6.4, "degree_days": {"18": 0.0, "20": 0.0, "22": 0.0}}, {"date": "2025-03", "date_label": "Mar 2025", "year": "Y2", "consumption": 1006380.0, "avg_temp": 12.5, "degree_days": {"18": 21.3, "20": 8.78, "22": 2.36}}, {"date": "2025-04", "date_label": "Apr 2025", "year": "Y2", "consumption": 950040.0, "avg_temp": 19.2, "degree_days": {"18": 58.82, "20": 24.42, "22": 6.93}}, {"date": "2025-05", "date_label": "May 2025", "year": "Y2", "consumption": 1077720.0, "avg_temp": 22.6, "degree_days": {"18": 142.54, "20": 84.62, "22": 36.38}}], "year_summary": [{"year": "Y1", "period": "Jun 23 \u2013 May 24", "total_kwh": 13404450.0, "eui": 117.6, "total_dd": 1450.0, "kwh_per_dd": 9245.0, "cost_cny": 8433092.0, "carbon_tco2": 9509.0}, {"year": "Y2", "period": "Jun 24 \u2013 May 25", "total_kwh": 12380870.0, "eui": 108.6, "total_dd": 1661.0, "kwh_per_dd": 7455.0, "cost_cny": 7789131.0, "carbon_tco2": 8783.0}]};
+
+    const formatNumber = (num) => {
+      if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(0) + 'k';
+      return num.toFixed(0);
+    };
+
+    const CustomTooltip = ({ active, payload, balancePoint, ddType }) => {
+      if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+          <div className="bg-gray-800 p-3 border border-gray-600 rounded shadow-lg text-sm">
+            <p className="font-bold text-gray-100 mb-2">{data.date_label}</p>
+            <div className="space-y-1">
+              <p><span className="text-blue-400">●</span> Actual: <span className="font-semibold">{formatNumber(data.consumption)} kWh</span></p>
+              <p><span className="text-red-500">●</span> Predicted: <span className="font-semibold">{formatNumber(data.predicted)} kWh</span></p>
+              <p><span className="text-gray-500">●</span> Residual: <span className={`font-semibold ${data.residual >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {data.residual >= 0 ? '+' : ''}{formatNumber(data.residual)} ({data.residualPct >= 0 ? '+' : ''}{data.residualPct.toFixed(1)}%)
+              </span></p>
+              <hr className="my-1" />
+              <p className="text-gray-300">{ddType}_{balancePoint}: {data.dd.toFixed(1)}</p>
+              <p className="text-gray-300">Avg Temp: {data.avg_temp}°C</p>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const ResidualTooltip = ({ active, payload, balancePoint, ddType }) => {
+      if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+          <div className="bg-gray-800 p-3 border border-gray-600 rounded shadow-lg text-sm">
+            <p className="font-bold text-gray-100 mb-2">{data.date_label}</p>
+            <div className="space-y-1">
+              <p>Residual: <span className={`font-semibold ${data.residual >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {data.residual >= 0 ? '+' : ''}{formatNumber(data.residual)} kWh
+              </span></p>
+              <p className="text-amber-400">{ddType}_{balancePoint}: {data.dd.toFixed(1)}</p>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    function EnergyModelVisualization() {
+      const [balancePoint, setBalancePoint] = useState(vizData.selected_balance_point);
+      const [yearFilter, setYearFilter] = useState('All');
+
+      const currentModel = vizData.models[String(balancePoint)];
+      const ddType = vizData.degree_day_type;
+
+      const chartData = useMemo(() => {
+        let filtered = vizData.monthly_data;
+        if (yearFilter !== 'All') {
+          filtered = filtered.filter(d => d.year === yearFilter);
+        }
+
+        return filtered.map(d => {
+          const dd = d.degree_days[String(balancePoint)];
+          const predicted = currentModel.beta_0 + currentModel.beta * dd;
+          const residual = d.consumption - predicted;
+          const residualPct = predicted > 0 ? (residual / predicted) * 100 : 0;
+
+          return {
+            ...d,
+            dd,
+            predicted,
+            residual,
+            residualPct,
+            consumptionK: d.consumption / 1000,
+            predictedK: predicted / 1000,
+            residualK: residual / 1000
+          };
+        });
+      }, [balancePoint, yearFilter, currentModel]);
+
+      const rmseK = currentModel.rmse / 1000;
+      const g14ActiveColor = currentModel.cv_rmse_active_pct <= 15 ? 'text-green-400' : 'text-orange-400';
+
+      const y1 = vizData.year_summary[0];
+      const y2 = vizData.year_summary[1];
+      const deltas = {
+        total_pct: ((y2.total_kwh - y1.total_kwh) / y1.total_kwh * 100).toFixed(1),
+        eui_abs: (y2.eui - y1.eui).toFixed(1),
+        dd_pct: ((y2.total_dd - y1.total_dd) / y1.total_dd * 100).toFixed(1),
+        kwh_per_dd_pct: ((y2.kwh_per_dd - y1.kwh_per_dd) / y1.kwh_per_dd * 100).toFixed(1),
+        cost_pct: ((y2.cost_cny - y1.cost_cny) / y1.cost_cny * 100).toFixed(1),
+        carbon_pct: ((y2.carbon_tco2 - y1.carbon_tco2) / y1.carbon_tco2 * 100).toFixed(1)
+      };
+
+      const totalConsumption = vizData.monthly_data.reduce((sum, d) => sum + d.consumption, 0);
+      const baseloadAnnual = currentModel.beta_0 * 24;
+      const weatherDriven = totalConsumption - baseloadAnnual;
+
+      return (
+        <div className="w-full max-w-6xl mx-auto p-4 bg-gray-900 font-sans">
+          <div className="bg-gray-800 rounded-lg shadow p-4 mb-4">
+            <div className="flex flex-wrap gap-6 items-center">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-200">Explore Balance Point:</label>
+                <div className="flex items-center gap-2">
+                  {vizData.balance_points_tested.map(bp => (
+                    <button key={bp} onClick={() => setBalancePoint(bp)}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${balancePoint === bp ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200 hover:bg-gray-600'}`}>
+                      {bp}°C
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-200">Year:</label>
+                <div className="flex items-center gap-2">
+                  {['All', 'Y1', 'Y2'].map(year => (
+                    <button key={year} onClick={() => setYearFilter(year)}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${yearFilter === year ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200 hover:bg-gray-600'}`}>
+                      {year}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg shadow p-4 mb-4">
+            <h2 className="text-lg font-semibold text-gray-100 mb-2">Actual vs Predicted Consumption</h2>
+            <ResponsiveContainer width="100%" height={280}>
+              <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="date_label" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={yearFilter === 'All' ? 2 : 0} angle={-45} textAnchor="end" />
+                <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: 'kWh (thousands)', angle: -90, position: 'insideLeft', fontSize: 11 }} tickFormatter={(v) => v.toFixed(0)} />
+                <Tooltip content={<CustomTooltip balancePoint={balancePoint} ddType={ddType} />} />
+                <Legend verticalAlign="top" height={36} />
+                <Line type="monotone" dataKey="consumptionK" stroke="#60A5FA" strokeWidth={2} dot={{ r: 4, fill: '#2563eb' }} name="Actual" />
+                <Line type="monotone" dataKey="predictedK" stroke="#F87171" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Predicted" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg shadow p-4 mb-4">
+            <h2 className="text-lg font-semibold text-gray-100 mb-2">Residuals & Cooling Degree Days</h2>
+            <ResponsiveContainer width="100%" height={220}>
+              <ComposedChart data={chartData} margin={{ top: 10, right: 60, left: 10, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="date_label" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={yearFilter === 'All' ? 2 : 0} angle={-45} textAnchor="end" />
+                <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: 'Residual (thousands)', angle: -90, position: 'insideLeft', fontSize: 10 }} tickFormatter={(v) => v.toFixed(0)} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#9CA3AF' }} label={{ value: 'CDD_18', angle: 90, position: 'insideRight', fontSize: 10 }} />
+                <Tooltip content={<ResidualTooltip balancePoint={balancePoint} ddType={ddType} />} />
+                <Legend verticalAlign="top" height={36} />
+                <ReferenceArea yAxisId="left" y1={-rmseK} y2={rmseK} fill="#22c55e" fillOpacity={0.15} />
+                <ReferenceLine yAxisId="left" y={0} stroke="#1e3a5f" strokeWidth={1.5} />
+                <Bar yAxisId="left" dataKey="residualK" name="Residual" fill="#60a5fa" stroke="#60A5FA" />
+                <Line yAxisId="right" type="monotone" dataKey="dd" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 2" dot={false} name="CDD_18" />
+              </ComposedChart>
+            </ResponsiveContainer>
+            <p className="text-xs text-gray-500 mt-1 text-center">Green band = ±RMSE ({formatNumber(currentModel.rmse)} kWh)</p>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg shadow p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-1">
+                <h3 className="text-sm font-semibold text-gray-200 mb-2">Model Equation</h3>
+                <div className="bg-gray-900 rounded p-2 font-mono text-sm">E = {currentModel.beta_0.toLocaleString()} + {currentModel.beta} × {ddType}<sub>{balancePoint}</sub></div>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+                  <div className="bg-blue-900/50 rounded p-2"><p className="text-xs text-gray-500">R²</p><p className="text-base font-bold text-blue-400">{currentModel.r_squared.toFixed(3)}</p></div>
+                  <div className="bg-gray-900 rounded p-2"><p className="text-xs text-gray-500">NMBE</p><p className="text-base font-bold text-gray-200">{currentModel.nmbe_pct.toFixed(1)}%</p></div>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+                  <div className="bg-gray-900 rounded p-2"><p className="text-xs text-gray-500">CV Full</p><p className="text-base font-bold text-gray-300">{currentModel.cv_rmse_pct.toFixed(1)}%</p></div>
+                  <div className={`rounded p-2 ${currentModel.cv_rmse_active_pct <= 15 ? 'bg-green-900/50' : 'bg-orange-900/50'}`}>
+                    <p className="text-xs text-gray-500">CV Active</p>
+                    <p className={`text-base font-bold ${g14ActiveColor}`}>{currentModel.cv_rmse_active_pct.toFixed(1)}%</p>
+                  </div>
+                </div>
+                <p className="text-xs mt-2 text-gray-500">G-14: CV ≤15% · Active: {vizData.active_season}</p>
+                
+                <div className="mt-4 pt-3 border-t border-gray-700">
+                  <h4 className="text-xs font-semibold text-gray-300 mb-2">Load Breakdown (24 mo)</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between"><span>Baseload (β₀×24):</span><span className="font-semibold">{(baseloadAnnual/1000000).toFixed(1)}M kWh ({(baseloadAnnual/totalConsumption*100).toFixed(0)}%)</span></div>
+                    <div className="flex justify-between"><span>Weather-driven:</span><span className="font-semibold">{(weatherDriven/1000000).toFixed(1)}M kWh ({(weatherDriven/totalConsumption*100).toFixed(0)}%)</span></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="md:col-span-2">
+                <h3 className="text-sm font-semibold text-gray-200 mb-2">Annual Summary</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-900">
+                        <th className="px-2 py-1 text-left">Period</th>
+                        <th className="px-2 py-1 text-right">Total<br/><span className="font-normal text-gray-500">(kWh)</span></th>
+                        <th className="px-2 py-1 text-right">EUI<br/><span className="font-normal text-gray-500">(kWh/m²)</span></th>
+                        <th className="px-2 py-1 text-right">{ddType}<br/><span className="font-normal text-gray-500">(°C·days)</span></th>
+                        <th className="px-2 py-1 text-right">kWh/DD<br/><span className="font-normal text-gray-500">(efficiency)</span></th>
+                        <th className="px-2 py-1 text-right">Cost<br/><span className="font-normal text-gray-500">(CNY)</span></th>
+                        <th className="px-2 py-1 text-right">Carbon<br/><span className="font-normal text-gray-500">(tCO₂e)</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vizData.year_summary.map(ys => (
+                        <tr key={ys.year} className={yearFilter !== 'All' && yearFilter !== ys.year ? 'opacity-40' : ''}>
+                          <td className="px-2 py-1 font-medium">{ys.period}</td>
+                          <td className="px-2 py-1 text-right">{formatNumber(ys.total_kwh)}</td>
+                          <td className="px-2 py-1 text-right">{ys.eui.toFixed(1)}</td>
+                          <td className="px-2 py-1 text-right">{ys.total_dd.toLocaleString()}</td>
+                          <td className="px-2 py-1 text-right">{ys.kwh_per_dd.toLocaleString()}</td>
+                          <td className="px-2 py-1 text-right">{formatNumber(ys.cost_cny)}</td>
+                          <td className="px-2 py-1 text-right">{ys.carbon_tco2.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                      <tr className="border-t border-gray-700 font-medium bg-gray-900">
+                        <td className="px-2 py-1">Δ Y2−Y1</td>
+                        <td className={`px-2 py-1 text-right ${parseFloat(deltas.total_pct) >= 0 ? 'text-red-400' : 'text-green-400'}`}>{deltas.total_pct >= 0 ? '+' : ''}{deltas.total_pct}%</td>
+                        <td className={`px-2 py-1 text-right ${parseFloat(deltas.eui_abs) >= 0 ? 'text-red-400' : 'text-green-400'}`}>{deltas.eui_abs >= 0 ? '+' : ''}{deltas.eui_abs}</td>
+                        <td className="px-2 py-1 text-right text-gray-500">{deltas.dd_pct >= 0 ? '+' : ''}{deltas.dd_pct}%</td>
+                        <td className={`px-2 py-1 text-right ${parseFloat(deltas.kwh_per_dd_pct) >= 0 ? 'text-red-400' : 'text-green-400'}`}>{deltas.kwh_per_dd_pct >= 0 ? '+' : ''}{deltas.kwh_per_dd_pct}%</td>
+                        <td className={`px-2 py-1 text-right ${parseFloat(deltas.cost_pct) >= 0 ? 'text-red-400' : 'text-green-400'}`}>{deltas.cost_pct >= 0 ? '+' : ''}{deltas.cost_pct}%</td>
+                        <td className={`px-2 py-1 text-right ${parseFloat(deltas.carbon_pct) >= 0 ? 'text-red-400' : 'text-green-400'}`}>{deltas.carbon_pct >= 0 ? '+' : ''}{deltas.carbon_pct}%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Carbon EF: {vizData.emission_factor} kgCO₂e/kWh (East China Grid 2023) · Note: Low R² expected — 94% is weather-independent baseload</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <h3 className="text-sm font-semibold text-gray-200 mb-2">Balance Point Sensitivity</h3>
+              <table className="w-full text-sm">
+                <thead><tr className="bg-gray-900"><th className="px-3 py-1 text-left">BP</th><th className="px-3 py-1 text-right">β₀</th><th className="px-3 py-1 text-right">β₁</th><th className="px-3 py-1 text-right">R²</th><th className="px-3 py-1 text-right">CV Full</th><th className="px-3 py-1 text-right">CV Active</th><th className="px-3 py-1 text-center">G-14</th></tr></thead>
+                <tbody>
+                  {vizData.balance_points_tested.map(bp => {
+                    const m = vizData.models[String(bp)];
+                    const isViewing = bp === balancePoint;
+                    const isSelected = bp === vizData.selected_balance_point;
+                    const passesActive = m.cv_rmse_active_pct <= 15;
+                    return (
+                      <tr key={bp} className={`cursor-pointer hover:bg-blue-900/50 ${isViewing ? 'bg-blue-900/30 font-semibold' : ''}`} onClick={() => setBalancePoint(bp)}>
+                        <td className="px-3 py-1">{bp}°C {isSelected && <span className="ml-1 text-green-400">✓</span>}</td>
+                        <td className="px-3 py-1 text-right">{m.beta_0.toLocaleString()}</td>
+                        <td className="px-3 py-1 text-right">{m.beta.toFixed(1)}</td>
+                        <td className="px-3 py-1 text-right">{m.r_squared.toFixed(3)}</td>
+                        <td className="px-3 py-1 text-right text-gray-500">{m.cv_rmse_pct.toFixed(1)}%</td>
+                        <td className={`px-3 py-1 text-right ${passesActive ? 'text-green-400' : 'text-orange-400'}`}>{m.cv_rmse_active_pct.toFixed(1)}%</td>
+                        <td className={`px-3 py-1 text-center ${passesActive ? 'text-green-400' : 'text-orange-400'}`}>{passesActive ? '✓' : '✗'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="text-xs text-gray-500 mt-2">Active season: {vizData.active_season} (n={currentModel.n_months_active} months)</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<EnergyModelVisualization />);
+  </script>
+</body>
+</html>

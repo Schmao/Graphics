@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature Prediction Panel - ECNU</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #111827; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .panel { background-color: #111827; color: #f3f4f6; padding: 16px; border-radius: 8px; width: 100%; max-width: 512px; min-height: 260px; }
+    .chart-container { height: 176px; }
+    .legend { display: flex; justify-content: center; gap: 12px; margin-top: 8px; font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-line { width: 12px; height: 2px; }
+    .legend-box { width: 12px; height: 8px; border-radius: 2px; }
+    .legend-label { color: #9ca3af; }
+    .bg-emerald { background-color: #10b981; }
+    .bg-amber { background-color: #f59e0b; }
+    .bg-cyan { background-color: #06b6d4; }
+    .bg-cyan-light { background-color: #06b6d4; opacity: 0.2; }
+    .tooltip { background-color: #1f2937; border: 1px solid #4b5563; border-radius: 4px; padding: 8px 12px; font-size: 12px; }
+    .tooltip-label { color: #d1d5db; font-weight: 500; margin-bottom: 4px; }
+    .tooltip-actual { color: #34d399; }
+    .tooltip-predicted { color: #fbbf24; }
+    .tooltip-forecast { color: #22d3ee; }
+    .tooltip-range { color: #6b7280; font-size: 11px; }
+    .tooltip-current { color: #9ca3af; font-size: 11px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    const { ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Area } = Recharts;
+    const e = React.createElement;
+
+    const hourlyAvg = { 8: 18.36, 9: 18.91, 10: 19.41, 11: 19.52, 12: 19.48, 13: 19.58, 14: 19.60 };
+    
+    function generateData() {
+      const data = [];
+      const currentHour = 11;
+      
+      for (let hour = 8; hour <= 14; hour++) {
+        for (let min = 0; min < 60; min += 30) {
+          if (hour === 14 && min > 0) break;
+          
+          const timeStr = String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+          const timeMinutes = hour * 60 + min;
+          const nowMinutes = currentHour * 60;
+          
+          const hourFraction = min / 60;
+          const nextHour = Math.min(hour + 1, 14);
+          const baseTemp = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
+          
+          const variation = Math.sin(timeMinutes * 0.05) * 0.15 + Math.cos(timeMinutes * 0.03) * 0.1;
+          const actual = Math.round((baseTemp + variation) * 10) / 10;
+          
+          const isPast = timeMinutes < nowMinutes;
+          const isNow = timeMinutes === nowMinutes;
+          const isFuture = timeMinutes > nowMinutes;
+          
+          const predictionError = Math.sin(timeMinutes * 0.02) * 0.2 + Math.cos(timeMinutes * 0.015) * 0.1;
+          const predicted = Math.round((actual + predictionError) * 10) / 10;
+          
+          const forecastBase = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
+          const forecast = Math.round((forecastBase + variation * 0.5) * 10) / 10;
+          
+          const hoursIntoFuture = isFuture ? (timeMinutes - nowMinutes) / 60 : 0;
+          const uncertainty = 0.1 + (hoursIntoFuture * 0.13);
+          
+          data.push({
+            time: timeStr,
+            actual: isPast || isNow ? actual : null,
+            predicted: isPast ? predicted : (isNow ? actual : null),
+            forecast: isNow ? actual : (isFuture ? forecast : null),
+            forecastUpper: (isNow || isFuture) ? Math.round(((isNow ? actual : forecast) + (isNow ? 0 : uncertainty)) * 10) / 10 : null,
+            forecastLower: (isNow || isFuture) ? Math.round(((isNow ? actual : forecast) - (isNow ? 0 : uncertainty)) * 10) / 10 : null,
+            isNow: isNow
+          });
+        }
+      }
+      return data;
+    }
+    
+    const data = generateData();
+    
+    function CustomTooltip(props) {
+      if (props.active && props.payload && props.payload.length) {
+        const item = props.payload[0].payload;
+        return e('div', { className: 'tooltip' },
+          e('div', { className: 'tooltip-label' }, props.label),
+          item.actual !== null && e('div', { className: 'tooltip-actual' }, 'Actual: ' + item.actual + '°C'),
+          item.predicted !== null && !item.isNow && e('div', { className: 'tooltip-predicted' }, 'Predicted: ' + item.predicted + '°C'),
+          item.forecast !== null && !item.isNow && e('div', { className: 'tooltip-forecast' }, 'Forecast: ' + item.forecast + '°C'),
+          item.forecast !== null && !item.isNow && item.forecastUpper && e('div', { className: 'tooltip-range' }, 'Range: ' + item.forecastLower + '°C - ' + item.forecastUpper + '°C'),
+          item.isNow && e('div', { className: 'tooltip-current' }, 'Current reading')
+        );
+      }
+      return null;
+    }
+
+    function Panel() {
+      return e('div', { className: 'panel' },
+        e('div', { className: 'chart-container' },
+          e(ResponsiveContainer, { width: '100%', height: '100%' },
+            e(ComposedChart, { data: data, margin: { top: 5, right: 5, left: -20, bottom: 5 } },
+              e(XAxis, { dataKey: 'time', tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, interval: 1 }),
+              e(YAxis, { domain: [17.5, 20.5], tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, tickFormatter: function(val) { return val + '°'; } }),
+              e(Tooltip, { content: e(CustomTooltip) }),
+              e(ReferenceLine, { x: '11:00', stroke: '#6B7280', strokeDasharray: '4 4', label: { value: 'Now', position: 'top', fill: '#9CA3AF', fontSize: 10 } }),
+              e(Area, { type: 'monotone', dataKey: 'forecastUpper', stroke: 'none', fill: '#06B6D4', fillOpacity: 0.15 }),
+              e(Area, { type: 'monotone', dataKey: 'forecastLower', stroke: 'none', fill: '#111827', fillOpacity: 1 }),
+              e(Line, { type: 'monotone', dataKey: 'actual', stroke: '#10B981', strokeWidth: 2, dot: false }),
+              e(Line, { type: 'monotone', dataKey: 'predicted', stroke: '#F59E0B', strokeWidth: 2, strokeDasharray: '6 3', dot: false }),
+              e(Line, { type: 'monotone', dataKey: 'forecast', stroke: '#06B6D4', strokeWidth: 2, strokeDasharray: '6 3', dot: false })
+            )
+          )
+        ),
+        e('div', { className: 'legend' },
+          e('div', { className: 'legend-item' }, e('div', { className: 'legend-line bg-emerald' }), e('span', { className: 'legend-label' }, 'Actual')),
+          e('div', { className: 'legend-item' }, e('div', { className: 'legend-line bg-amber' }), e('span', { className: 'legend-label' }, 'Past Prediction')),
+          e('div', { className: 'legend-item' }, e('div', { className: 'legend-line bg-cyan' }), e('span', { className: 'legend-label' }, 'Forecast')),
+          e('div', { className: 'legend-item' }, e('div', { className: 'legend-box bg-cyan-light' }), e('span', { className: 'legend-label' }, 'Uncertainty'))
+        )
+      );
+    }
+
+    ReactDOM.render(e(Panel), document.getElementById('root'));
+  </script>
+</body>
+</html>

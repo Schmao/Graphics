@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VRV Performance Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #111827; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const VRVDashboard = () => {
+      const seasonData = [
+        { season: 'Peak Heating', months: '2501–02', b1Comply: 80.4, b1Rating: 'Good', b2Comply: 65.8, b2Rating: 'Poor', b1OffHr: 0.35, b2OffHr: 0.26, energy: 36795, pct: 12.7 },
+        { season: 'Trans. Heating', months: '2503, 2412', b1Comply: 84.5, b1Rating: 'Good', b2Comply: 73.7, b2Rating: 'Acceptable', b1OffHr: 1.63, b2OffHr: 1.48, energy: 27741, pct: 9.6 },
+        { season: 'Shoulder', months: '2504, 2511', b1Comply: 91.3, b1Rating: 'Excellent', b2Comply: 85.6, b2Rating: 'Good', b1OffHr: 0.80, b2OffHr: 0.50, energy: 11190, pct: 3.9 },
+        { season: 'Trans. Cooling', months: '2505–06, 2510', b1Comply: 94.8, b1Rating: 'Excellent', b2Comply: 92.0, b2Rating: 'Excellent', b1OffHr: 2.66, b2OffHr: 1.51, energy: 69666, pct: 24.1 },
+        { season: 'Peak Cooling', months: '2507–09', b1Comply: 82.9, b1Rating: 'Good', b2Comply: 73.8, b2Rating: 'Acceptable', b1OffHr: 1.57, b2OffHr: 3.99, energy: 143553, pct: 49.7 },
+      ];
+      const totalRow = { season: 'Annual Total', months: '2412–2512', b1Comply: 87.8, b1Rating: 'Good', b2Comply: 79.4, b2Rating: 'Acceptable', b1OffHr: 1.54, b2OffHr: 1.76, energy: 288945, pct: 100 };
+
+      const afddData = {
+        heating: { title: "Peak Heating: Jan", subtitle: "OAT 7.5°C | SP 25.7°C", b1: { q1: 0.2, median: 2.3, q3: 3.4, hours: 2555, compliance: 80 }, b2: { q1: -1.0, median: 1.0, q3: 2.9, hours: 3254, compliance: 71 }, gap: 1.3, gapLabel: "B1 delivers 1.3°C more" },
+        cooling: { title: "Peak Cooling: Aug", subtitle: "OAT 32.6°C | SP 26.0°C", b1: { q1: -1.2, median: -0.3, q3: 0.8, hours: 4080, compliance: 71 }, b2: { q1: -0.5, median: 0.8, q3: 1.9, hours: 6322, compliance: 46 }, gap: 1.1, gapLabel: "B2 falls short by 1.1°C" },
+      };
+
+      const ratingConfig = { 'Excellent': { color: '#10b981', label: 'E' }, 'Good': { color: '#84cc16', label: 'G' }, 'Acceptable': { color: '#f59e0b', label: 'A' }, 'Poor': { color: '#ef4444', label: 'P' } };
+
+      const StatusBadge = ({ rating, value }) => {
+        const config = ratingConfig[rating];
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', backgroundColor: config.color, color: '#1f2937', fontSize: 10, fontWeight: 700 }}>{config.label}</span>
+            <span style={{ fontWeight: 600, fontSize: 14, color: '#e5e7eb' }}>{value}</span>
+          </div>
+        );
+      };
+
+      const SetpointGraphic = () => {
+        const [hover, setHover] = useState(null);
+        const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+        const width = 320, height = 300, padding = { left: 45, right: 20, top: 25, bottom: 25 }, barHeight = 52;
+        const minTemp = 18, maxTemp = 28, range = maxTemp - minTemp;
+        const getX = (temp) => padding.left + ((temp - minTemp) / range) * (width - padding.left - padding.right);
+        const handleMouseMove = (e, element, data) => { const rect = e.currentTarget.getBoundingClientRect(); setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 }); setHover({ element, data }); };
+        const handleMouseLeave = () => setHover(null);
+        const barData = {
+          actual: { label: 'Actual SP', q1: 25.0, mean: 25.5, q3: 26.0, note: 'Year-round operating setpoint' },
+          heat: { label: 'Heat Standard', ashrae: '18–22°C', gb: '20°C', note: 'ASHRAE 55 / GB 50189' },
+          cool: { label: 'Cool Standard', ashrae: '24.5–27.5°C', gb: '26°C', note: 'ASHRAE 55 / GB 50189' },
+        };
+        const Tooltip = () => {
+          if (!hover) return null;
+          const d = hover.data;
+          return (
+            <div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 6, padding: '10px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, minWidth: 140, pointerEvents: 'none', fontSize: 11 }}>
+              <div style={{ fontWeight: 700, color: '#e5e7eb', marginBottom: 6, borderBottom: '1px solid #374151', paddingBottom: 4 }}>{d.label}</div>
+              {d.q1 !== undefined ? (
+                <div style={{ color: '#9ca3af', lineHeight: 1.7 }}><div>Q1: {d.q1}°C</div><div><strong style={{ color: '#e5e7eb' }}>Mean: {d.mean}°C</strong></div><div>Q3: {d.q3}°C</div><div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>{d.note}</div></div>
+              ) : (
+                <div style={{ color: '#9ca3af', lineHeight: 1.7 }}><div>ASHRAE: {d.ashrae}</div><div><strong style={{ color: '#e5e7eb' }}>GB Target: {d.gb}</strong></div><div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>{d.note}</div></div>
+              )}
+            </div>
+          );
+        };
+        return (
+          <div style={{ backgroundColor: '#1f2937', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.3)', border: '1px solid #374151', position: 'relative', minWidth: 320, minHeight: 380 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e7eb', marginBottom: 12 }}>Setpoint vs Standard</div>
+            <svg width={width} height={height}>
+              {[18, 20, 22, 24, 26, 28].map(t => (<g key={t}><line x1={getX(t)} y1={padding.top} x2={getX(t)} y2={height - padding.bottom} stroke="#374151" strokeWidth={1} /><text x={getX(t)} y={height - 8} fontSize={9} fill="#6b7280" textAnchor="middle">{t}°</text></g>))}
+              <g transform={`translate(0, ${padding.top})`} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'actual', barData.actual)} onMouseLeave={handleMouseLeave}>
+                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">Actual</text>
+                <rect x={getX(25)} y={0} width={getX(26) - getX(25)} height={barHeight} fill={hover?.element === 'actual' ? '#60a5fa' : '#3b82f6'} opacity={hover?.element === 'actual' ? 0.4 : 0.3} rx={4} stroke="#3b82f6" strokeWidth={hover?.element === 'actual' ? 2 : 0} />
+                <line x1={getX(25.5)} y1={0} x2={getX(25.5)} y2={barHeight} stroke="#60a5fa" strokeWidth={3} />
+                <text x={getX(25)} y={barHeight + 16} fontSize={8} fill="#9ca3af">Q1:25</text>
+                <text x={getX(25.5)} y={-4} fontSize={8} fill="#60a5fa" textAnchor="middle">μ:25.5</text>
+                <text x={getX(26)} y={barHeight + 16} fontSize={8} fill="#9ca3af" textAnchor="end">Q3:26</text>
+              </g>
+              <g transform={`translate(0, ${padding.top + barHeight + 40})`} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'heat', barData.heat)} onMouseLeave={handleMouseLeave}>
+                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">Heat</text>
+                <rect x={getX(18)} y={0} width={getX(22) - getX(18)} height={barHeight} fill={hover?.element === 'heat' ? '#34d399' : '#10b981'} opacity={hover?.element === 'heat' ? 0.35 : 0.2} rx={4} stroke="#10b981" strokeWidth={hover?.element === 'heat' ? 2 : 1} strokeDasharray={hover?.element === 'heat' ? '0' : '3,2'} />
+                <line x1={getX(20)} y1={0} x2={getX(20)} y2={barHeight} stroke="#10b981" strokeWidth={2} />
+                <text x={getX(20)} y={-4} fontSize={8} fill="#10b981" textAnchor="middle">GB:20</text>
+              </g>
+              <g transform={`translate(0, ${padding.top + 2 * barHeight + 60})`} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'cool', barData.cool)} onMouseLeave={handleMouseLeave}>
+                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">Cool</text>
+                <rect x={getX(24.5)} y={0} width={getX(27.5) - getX(24.5)} height={barHeight} fill={hover?.element === 'cool' ? '#34d399' : '#10b981'} opacity={hover?.element === 'cool' ? 0.35 : 0.2} rx={4} stroke="#10b981" strokeWidth={hover?.element === 'cool' ? 2 : 1} strokeDasharray={hover?.element === 'cool' ? '0' : '3,2'} />
+                <line x1={getX(26)} y1={0} x2={getX(26)} y2={barHeight} stroke="#10b981" strokeWidth={2} />
+                <text x={getX(26)} y={-4} fontSize={8} fill="#10b981" textAnchor="middle">GB:26</text>
+              </g>
+            </svg>
+            <div style={{ fontSize: 10, color: '#6b7280', marginTop: 4 }}>Heating SP 4–6°C above GB standard</div>
+            <Tooltip />
+          </div>
+        );
+      };
+
+      const BoxPlotPanel = ({ data, yMin, yMax, goodZone }) => {
+        const [localHover, setLocalHover] = useState(null);
+        const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+        const height = 340, width = 155, padding = { top: 25, bottom: 30, left: 36, right: 20 };
+        const plotHeight = height - padding.top - padding.bottom, plotWidth = width - padding.left - padding.right;
+        const rangeVal = yMax - yMin;
+        const getY = (val) => padding.top + plotHeight - ((val - yMin) / rangeVal) * plotHeight;
+        const boxWidth = 32, b1X = padding.left + plotWidth * 0.3, b2X = padding.left + plotWidth * 0.7;
+        const ticks = []; for (let i = yMin; i <= yMax; i++) ticks.push(i);
+        const gapTop = Math.min(getY(data.b1.median), getY(data.b2.median));
+        const gapBottom = Math.max(getY(data.b1.median), getY(data.b2.median));
+        const gapHeight = gapBottom - gapTop;
+        const handleMouseMove = (e, element, elementData) => { const rect = e.currentTarget.getBoundingClientRect(); setTooltipPos({ x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 }); setLocalHover({ element, data: elementData }); };
+        const handleMouseLeave = () => setLocalHover(null);
+        const Tooltip = ({ data: d, building }) => (
+          <div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 6, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, minWidth: 105, pointerEvents: 'none', fontSize: 10 }}>
+            <div style={{ fontWeight: 700, color: building === 'B1' ? '#60a5fa' : '#fb923c', marginBottom: 4 }}>{building}</div>
+            <div style={{ color: '#9ca3af', lineHeight: 1.6 }}>
+              <div>Q1: {d.q1 > 0 ? '+' : ''}{d.q1}°C</div><div><strong style={{ color: '#e5e7eb' }}>Median: {d.median > 0 ? '+' : ''}{d.median}°C</strong></div><div>Q3: {d.q3 > 0 ? '+' : ''}{d.q3}°C</div>
+              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid #374151' }}>Hours: {d.hours.toLocaleString()}<br />Compliance: {d.compliance}%</div>
+            </div>
+          </div>
+        );
+        return (
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#e5e7eb', marginBottom: 2, textAlign: 'center' }}>{data.title}</div>
+            <div style={{ fontSize: 9, color: '#9ca3af', marginBottom: 6, textAlign: 'center' }}>{data.subtitle}</div>
+            <svg width={width} height={height}>
+              {goodZone === 'above' && <rect x={padding.left} y={padding.top} width={plotWidth} height={getY(0) - padding.top} fill="#064e3b" opacity={0.4} />}
+              {goodZone === 'below' && <rect x={padding.left} y={getY(0)} width={plotWidth} height={padding.top + plotHeight - getY(0)} fill="#064e3b" opacity={0.4} />}
+              <rect x={b1X - boxWidth/2 - 3} y={gapTop} width={b2X - b1X + boxWidth + 6} height={gapHeight} fill={localHover?.element === 'gap' ? '#fbbf24' : '#78350f'} opacity={0.7} stroke="#f59e0b" strokeWidth={1} strokeDasharray="3,2" rx={3} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'gap', { gap: data.gap, label: data.gapLabel })} onMouseLeave={handleMouseLeave} />
+              <text x={padding.left + plotWidth / 2} y={gapTop + gapHeight / 2} fontSize={10} fontWeight={700} fill="#fbbf24" textAnchor="middle" dominantBaseline="middle" style={{ pointerEvents: 'none' }}>{data.gap}°C</text>
+              <line x1={padding.left} y1={getY(0)} x2={padding.left + plotWidth} y2={getY(0)} stroke="#ef4444" strokeWidth={2} strokeDasharray="4,3" />
+              <text x={padding.left + plotWidth + 3} y={getY(0)} fontSize={8} fill="#ef4444" fontWeight={600} dominantBaseline="middle">SP</text>
+              {ticks.map((tick) => (<g key={tick}><line x1={padding.left - 3} y1={getY(tick)} x2={padding.left} y2={getY(tick)} stroke="#4b5563" /><text x={padding.left - 5} y={getY(tick)} fontSize={8} fill="#9ca3af" textAnchor="end" dominantBaseline="middle">{tick > 0 ? `+${tick}` : tick}°</text><line x1={padding.left} y1={getY(tick)} x2={padding.left + plotWidth} y2={getY(tick)} stroke="#374151" /></g>))}
+              <g style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'B1', data.b1)} onMouseLeave={handleMouseLeave}>
+                <rect x={b1X - boxWidth/2} y={getY(data.b1.q3)} width={boxWidth} height={getY(data.b1.q1) - getY(data.b1.q3)} fill="#3b82f6" opacity={localHover?.element === 'B1' ? 0.4 : 0.2} stroke="#60a5fa" strokeWidth={localHover?.element === 'B1' ? 3 : 2} rx={3} />
+                <line x1={b1X - boxWidth/2} y1={getY(data.b1.median)} x2={b1X + boxWidth/2} y2={getY(data.b1.median)} stroke="#93c5fd" strokeWidth={3} />
+                <text x={b1X} y={padding.top + plotHeight + 14} fontSize={10} fill="#60a5fa" fontWeight={700} textAnchor="middle">B1</text>
+              </g>
+              <g style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'B2', data.b2)} onMouseLeave={handleMouseLeave}>
+                <rect x={b2X - boxWidth/2} y={getY(data.b2.q3)} width={boxWidth} height={getY(data.b2.q1) - getY(data.b2.q3)} fill="#ea580c" opacity={localHover?.element === 'B2' ? 0.4 : 0.2} stroke="#fb923c" strokeWidth={localHover?.element === 'B2' ? 3 : 2} rx={3} />
+                <line x1={b2X - boxWidth/2} y1={getY(data.b2.median)} x2={b2X + boxWidth/2} y2={getY(data.b2.median)} stroke="#fdba74" strokeWidth={3} />
+                <text x={b2X} y={padding.top + plotHeight + 14} fontSize={10} fill="#fb923c" fontWeight={700} textAnchor="middle">B2</text>
+              </g>
+            </svg>
+            {localHover?.element === 'B1' && <Tooltip data={localHover.data} building="B1" />}
+            {localHover?.element === 'B2' && <Tooltip data={localHover.data} building="B2" />}
+            {localHover?.element === 'gap' && (<div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#78350f', border: '1px solid #f59e0b', borderRadius: 6, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, pointerEvents: 'none' }}><div style={{ fontWeight: 700, fontSize: 11, color: '#fbbf24' }}>Gap: {localHover.data.gap}°C</div><div style={{ fontSize: 10, color: '#fcd34d' }}>{localHover.data.label}</div></div>)}
+          </div>
+        );
+      };
+
+      return (
+        <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", backgroundColor: '#111827', minHeight: '100vh', padding: '32px 40px', width: '100%', maxWidth: 1200, minWidth: 900, margin: '0 auto', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', gap: 20, marginBottom: 20, padding: '10px 16px', backgroundColor: '#1f2937', borderRadius: 8, border: '1px solid #374151', width: 'fit-content' }}>
+            {Object.entries(ratingConfig).map(([rating, config]) => (<div key={rating} style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: config.color, color: '#1f2937', fontSize: 9, fontWeight: 700 }}>{config.label}</span><span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{rating === 'Excellent' ? '≥90%' : rating === 'Good' ? '80–89%' : rating === 'Acceptable' ? '70–79%' : '<70%'}</span></div>))}
+          </div>
+
+          <div style={{ backgroundColor: '#1f2937', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.3)', overflow: 'hidden', marginBottom: 24, border: '1px solid #374151' }}>
+            <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ color: '#e5e7eb', fontSize: 13, fontWeight: 600, margin: 0, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Performance by Season</h2>
+              <span style={{ color: '#6b7280', fontSize: 11, fontWeight: 500 }}>SP Compliance: % active hours within ±0.5°C | Off-Hour Use: 23:00–06:00 active rate</span>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#374151' }}>
+                  <th style={{ padding: '12px 20px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>Season</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>Months</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }} colSpan={2}>B1</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }} colSpan={2}>B2</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }}>Energy</th>
+                  <th style={{ padding: '12px 20px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>Share</th>
+                </tr>
+                <tr style={{ backgroundColor: '#374151' }}>
+                  <th style={{ padding: '6px 20px', borderBottom: '1px solid #4b5563' }}></th>
+                  <th style={{ padding: '6px 16px', borderBottom: '1px solid #4b5563' }}></th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}>SP Compliance</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563' }}>Off-Hour Use</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}>SP Compliance</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563' }}>Off-Hour Use</th>
+                  <th style={{ padding: '6px 16px', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}></th>
+                  <th style={{ padding: '6px 20px', borderBottom: '1px solid #4b5563' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {seasonData.map((row, i) => (
+                  <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#1f2937' : '#283548' }}>
+                    <td style={{ padding: '14px 20px', borderBottom: '1px solid #374151', fontWeight: 600, color: '#e5e7eb', fontSize: 13 }}>{row.season}</td>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid #374151', color: '#9ca3af', fontSize: 12, fontFamily: "'SF Mono', monospace" }}>{row.months}</td>
+                    <td style={{ padding: '14px 12px', borderBottom: '1px solid #374151', borderLeft: '1px solid #374151' }}><StatusBadge rating={row.b1Rating} value={`${row.b1Comply}%`} /></td>
+                    <td style={{ padding: '14px 12px', borderBottom: '1px solid #374151', textAlign: 'center', fontFamily: "'SF Mono', monospace", fontSize: 12, color: '#9ca3af' }}>{row.b1OffHr.toFixed(2)}%</td>
+                    <td style={{ padding: '14px 12px', borderBottom: '1px solid #374151', borderLeft: '1px solid #374151' }}><StatusBadge rating={row.b2Rating} value={`${row.b2Comply}%`} /></td>
+                    <td style={{ padding: '14px 12px', borderBottom: '1px solid #374151', textAlign: 'center', fontFamily: "'SF Mono', monospace", fontSize: 12, color: row.b2OffHr > 3 ? '#ef4444' : '#9ca3af', fontWeight: row.b2OffHr > 3 ? 600 : 400 }}>{row.b2OffHr.toFixed(2)}%</td>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid #374151', textAlign: 'right', fontFamily: "'SF Mono', monospace", fontSize: 12, color: '#d1d5db', borderLeft: '1px solid #374151' }}>{row.energy.toLocaleString()}</td>
+                    <td style={{ padding: '14px 20px', borderBottom: '1px solid #374151', textAlign: 'right', fontFamily: "'SF Mono', monospace", fontSize: 12, color: '#6b7280' }}>{row.pct}%</td>
+                  </tr>
+                ))}
+                <tr style={{ backgroundColor: '#374151' }}>
+                  <td style={{ padding: '16px 20px', fontWeight: 700, color: '#e5e7eb', fontSize: 13, borderTop: '2px solid #4b5563' }}>{totalRow.season}</td>
+                  <td style={{ padding: '16px 16px', color: '#9ca3af', fontSize: 12, borderTop: '2px solid #4b5563', fontFamily: "'SF Mono', monospace" }}>{totalRow.months}</td>
+                  <td style={{ padding: '16px 12px', borderTop: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }}><StatusBadge rating={totalRow.b1Rating} value={`${totalRow.b1Comply}%`} /></td>
+                  <td style={{ padding: '16px 12px', textAlign: 'center', fontFamily: "'SF Mono', monospace", fontSize: 12, fontWeight: 600, color: '#e5e7eb', borderTop: '2px solid #4b5563' }}>{totalRow.b1OffHr.toFixed(2)}%</td>
+                  <td style={{ padding: '16px 12px', borderTop: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }}><StatusBadge rating={totalRow.b2Rating} value={`${totalRow.b2Comply}%`} /></td>
+                  <td style={{ padding: '16px 12px', textAlign: 'center', fontFamily: "'SF Mono', monospace", fontSize: 12, fontWeight: 600, color: '#e5e7eb', borderTop: '2px solid #4b5563' }}>{totalRow.b2OffHr.toFixed(2)}%</td>
+                  <td style={{ padding: '16px 16px', textAlign: 'right', fontFamily: "'SF Mono', monospace", fontSize: 12, fontWeight: 700, color: '#e5e7eb', borderTop: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }}>{totalRow.energy.toLocaleString()}</td>
+                  <td style={{ padding: '16px 20px', textAlign: 'right', fontFamily: "'SF Mono', monospace", fontSize: 12, fontWeight: 600, color: '#9ca3af', borderTop: '2px solid #4b5563' }}>{totalRow.pct}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ display: 'flex', gap: 20 }}>
+            <SetpointGraphic />
+            <div style={{ flex: 1, backgroundColor: '#1f2937', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.3)', border: '1px solid #374151', minHeight: 380 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e7eb', marginBottom: 4 }}>AFDD: Peak Stress Evaluation</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>Deviation from Setpoint (Return − SP) — hover for details</div>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <BoxPlotPanel data={afddData.heating} yMin={-3} yMax={4} goodZone="above" />
+                <BoxPlotPanel data={afddData.cooling} yMin={-2} yMax={3} goodZone="below" />
+              </div>
+              <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 10, fontSize: 9, color: '#6b7280' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, backgroundColor: '#064e3b', border: '1px solid #10b981', borderRadius: 2 }}></span>Target</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, backgroundColor: '#78350f', border: '1px dashed #f59e0b', borderRadius: 2 }}></span>Gap</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 2, backgroundColor: '#ef4444' }}></span>SP</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20, display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280' }}>
+            <span>B1: 69 devices, 30 zones • B2: 66 devices, 28 zones</span>
+            <span>Energy: B2 metered • Dec 2024 – Dec 2025</span>
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<VRVDashboard />);
+  </script>
+</body>
+</html>
