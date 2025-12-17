@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VRV Performance Dashboard</title>
+  <title>VRV性能仪表板</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -19,20 +19,20 @@
 
     const VRVDashboard = () => {
       const seasonData = [
-        { season: 'Peak Heating', months: '2501–02', b1Comply: 80.4, b1Rating: 'Good', b2Comply: 65.8, b2Rating: 'Poor', b1OffHr: 0.35, b2OffHr: 0.26, energy: 36795, pct: 12.7 },
-        { season: 'Trans. Heating', months: '2503, 2412', b1Comply: 84.5, b1Rating: 'Good', b2Comply: 73.7, b2Rating: 'Acceptable', b1OffHr: 1.63, b2OffHr: 1.48, energy: 27741, pct: 9.6 },
-        { season: 'Shoulder', months: '2504, 2511', b1Comply: 91.3, b1Rating: 'Excellent', b2Comply: 85.6, b2Rating: 'Good', b1OffHr: 0.80, b2OffHr: 0.50, energy: 11190, pct: 3.9 },
-        { season: 'Trans. Cooling', months: '2505–06, 2510', b1Comply: 94.8, b1Rating: 'Excellent', b2Comply: 92.0, b2Rating: 'Excellent', b1OffHr: 2.66, b2OffHr: 1.51, energy: 69666, pct: 24.1 },
-        { season: 'Peak Cooling', months: '2507–09', b1Comply: 82.9, b1Rating: 'Good', b2Comply: 73.8, b2Rating: 'Acceptable', b1OffHr: 1.57, b2OffHr: 3.99, energy: 143553, pct: 49.7 },
+        { season: '供暖高峰期', months: '2501–02', b1Comply: 80.4, b1Rating: 'Good', b2Comply: 65.8, b2Rating: 'Poor', b1OffHr: 0.35, b2OffHr: 0.26, energy: 36795, pct: 12.7 },
+        { season: '供暖过渡期', months: '2503, 2412', b1Comply: 84.5, b1Rating: 'Good', b2Comply: 73.7, b2Rating: 'Acceptable', b1OffHr: 1.63, b2OffHr: 1.48, energy: 27741, pct: 9.6 },
+        { season: '过渡季节', months: '2504, 2511', b1Comply: 91.3, b1Rating: 'Excellent', b2Comply: 85.6, b2Rating: 'Good', b1OffHr: 0.80, b2OffHr: 0.50, energy: 11190, pct: 3.9 },
+        { season: '制冷过渡期', months: '2505–06, 2510', b1Comply: 94.8, b1Rating: 'Excellent', b2Comply: 92.0, b2Rating: 'Excellent', b1OffHr: 2.66, b2OffHr: 1.51, energy: 69666, pct: 24.1 },
+        { season: '制冷高峰期', months: '2507–09', b1Comply: 82.9, b1Rating: 'Good', b2Comply: 73.8, b2Rating: 'Acceptable', b1OffHr: 1.57, b2OffHr: 3.99, energy: 143553, pct: 49.7 },
       ];
-      const totalRow = { season: 'Annual Total', months: '2412–2512', b1Comply: 87.8, b1Rating: 'Good', b2Comply: 79.4, b2Rating: 'Acceptable', b1OffHr: 1.54, b2OffHr: 1.76, energy: 288945, pct: 100 };
+      const totalRow = { season: '年度总计', months: '2412–2512', b1Comply: 87.8, b1Rating: 'Good', b2Comply: 79.4, b2Rating: 'Acceptable', b1OffHr: 1.54, b2OffHr: 1.76, energy: 288945, pct: 100 };
 
       const afddData = {
-        heating: { title: "Peak Heating: Jan", subtitle: "OAT 7.5°C | SP 25.7°C", b1: { q1: 0.2, median: 2.3, q3: 3.4, hours: 2555, compliance: 80 }, b2: { q1: -1.0, median: 1.0, q3: 2.9, hours: 3254, compliance: 71 }, gap: 1.3, gapLabel: "B1 delivers 1.3°C more" },
-        cooling: { title: "Peak Cooling: Aug", subtitle: "OAT 32.6°C | SP 26.0°C", b1: { q1: -1.2, median: -0.3, q3: 0.8, hours: 4080, compliance: 71 }, b2: { q1: -0.5, median: 0.8, q3: 1.9, hours: 6322, compliance: 46 }, gap: 1.1, gapLabel: "B2 falls short by 1.1°C" },
+        heating: { title: "供暖高峰: 1月", subtitle: "室外温度 7.5°C | 设定点 25.7°C", b1: { q1: 0.2, median: 2.3, q3: 3.4, hours: 2555, compliance: 80 }, b2: { q1: -1.0, median: 1.0, q3: 2.9, hours: 3254, compliance: 71 }, gap: 1.3, gapLabel: "B1 多供热 1.3°C" },
+        cooling: { title: "制冷高峰: 8月", subtitle: "室外温度 32.6°C | 设定点 26.0°C", b1: { q1: -1.2, median: -0.3, q3: 0.8, hours: 4080, compliance: 71 }, b2: { q1: -0.5, median: 0.8, q3: 1.9, hours: 6322, compliance: 46 }, gap: 1.1, gapLabel: "B2 欠缺 1.1°C" },
       };
 
-      const ratingConfig = { 'Excellent': { color: '#10b981', label: 'E' }, 'Good': { color: '#84cc16', label: 'G' }, 'Acceptable': { color: '#f59e0b', label: 'A' }, 'Poor': { color: '#ef4444', label: 'P' } };
+      const ratingConfig = { 'Excellent': { color: '#10b981', label: '优' }, 'Good': { color: '#84cc16', label: '良' }, 'Acceptable': { color: '#f59e0b', label: '合' }, 'Poor': { color: '#ef4444', label: '差' } };
 
       const StatusBadge = ({ rating, value }) => {
         const config = ratingConfig[rating];
@@ -53,9 +53,9 @@
         const handleMouseMove = (e, element, data) => { const rect = e.currentTarget.getBoundingClientRect(); setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 }); setHover({ element, data }); };
         const handleMouseLeave = () => setHover(null);
         const barData = {
-          actual: { label: 'Actual SP', q1: 25.0, mean: 25.5, q3: 26.0, note: 'Year-round operating setpoint' },
-          heat: { label: 'Heat Standard', ashrae: '18–22°C', gb: '20°C', note: 'ASHRAE 55 / GB 50189' },
-          cool: { label: 'Cool Standard', ashrae: '24.5–27.5°C', gb: '26°C', note: 'ASHRAE 55 / GB 50189' },
+          actual: { label: '实际设定点', q1: 25.0, mean: 25.5, q3: 26.0, note: '全年运行设定点' },
+          heat: { label: '供暖标准', ashrae: '18–22°C', gb: '20°C', note: 'ASHRAE 55 / GB 50189' },
+          cool: { label: '制冷标准', ashrae: '24.5–27.5°C', gb: '26°C', note: 'ASHRAE 55 / GB 50189' },
         };
         const Tooltip = () => {
           if (!hover) return null;
@@ -64,20 +64,20 @@
             <div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 6, padding: '10px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, minWidth: 140, pointerEvents: 'none', fontSize: 11 }}>
               <div style={{ fontWeight: 700, color: '#e5e7eb', marginBottom: 6, borderBottom: '1px solid #374151', paddingBottom: 4 }}>{d.label}</div>
               {d.q1 !== undefined ? (
-                <div style={{ color: '#9ca3af', lineHeight: 1.7 }}><div>Q1: {d.q1}°C</div><div><strong style={{ color: '#e5e7eb' }}>Mean: {d.mean}°C</strong></div><div>Q3: {d.q3}°C</div><div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>{d.note}</div></div>
+                <div style={{ color: '#9ca3af', lineHeight: 1.7 }}><div>下四分位: {d.q1}°C</div><div><strong style={{ color: '#e5e7eb' }}>均值: {d.mean}°C</strong></div><div>上四分位: {d.q3}°C</div><div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>{d.note}</div></div>
               ) : (
-                <div style={{ color: '#9ca3af', lineHeight: 1.7 }}><div>ASHRAE: {d.ashrae}</div><div><strong style={{ color: '#e5e7eb' }}>GB Target: {d.gb}</strong></div><div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>{d.note}</div></div>
+                <div style={{ color: '#9ca3af', lineHeight: 1.7 }}><div>ASHRAE标准: {d.ashrae}</div><div><strong style={{ color: '#e5e7eb' }}>国标目标: {d.gb}</strong></div><div style={{ marginTop: 4, fontSize: 10, color: '#6b7280' }}>{d.note}</div></div>
               )}
             </div>
           );
         };
         return (
           <div style={{ backgroundColor: '#1f2937', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.3)', border: '1px solid #374151', position: 'relative', minWidth: 320, minHeight: 380 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e7eb', marginBottom: 12 }}>Setpoint vs Standard</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e7eb', marginBottom: 12 }}>设定点与标准对比</div>
             <svg width={width} height={height}>
               {[18, 20, 22, 24, 26, 28].map(t => (<g key={t}><line x1={getX(t)} y1={padding.top} x2={getX(t)} y2={height - padding.bottom} stroke="#374151" strokeWidth={1} /><text x={getX(t)} y={height - 8} fontSize={9} fill="#6b7280" textAnchor="middle">{t}°</text></g>))}
               <g transform={`translate(0, ${padding.top})`} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'actual', barData.actual)} onMouseLeave={handleMouseLeave}>
-                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">Actual</text>
+                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">实际</text>
                 <rect x={getX(25)} y={0} width={getX(26) - getX(25)} height={barHeight} fill={hover?.element === 'actual' ? '#60a5fa' : '#3b82f6'} opacity={hover?.element === 'actual' ? 0.4 : 0.3} rx={4} stroke="#3b82f6" strokeWidth={hover?.element === 'actual' ? 2 : 0} />
                 <line x1={getX(25.5)} y1={0} x2={getX(25.5)} y2={barHeight} stroke="#60a5fa" strokeWidth={3} />
                 <text x={getX(25)} y={barHeight + 16} fontSize={8} fill="#9ca3af">Q1:25</text>
@@ -85,19 +85,19 @@
                 <text x={getX(26)} y={barHeight + 16} fontSize={8} fill="#9ca3af" textAnchor="end">Q3:26</text>
               </g>
               <g transform={`translate(0, ${padding.top + barHeight + 40})`} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'heat', barData.heat)} onMouseLeave={handleMouseLeave}>
-                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">Heat</text>
+                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">供暖</text>
                 <rect x={getX(18)} y={0} width={getX(22) - getX(18)} height={barHeight} fill={hover?.element === 'heat' ? '#34d399' : '#10b981'} opacity={hover?.element === 'heat' ? 0.35 : 0.2} rx={4} stroke="#10b981" strokeWidth={hover?.element === 'heat' ? 2 : 1} strokeDasharray={hover?.element === 'heat' ? '0' : '3,2'} />
                 <line x1={getX(20)} y1={0} x2={getX(20)} y2={barHeight} stroke="#10b981" strokeWidth={2} />
                 <text x={getX(20)} y={-4} fontSize={8} fill="#10b981" textAnchor="middle">GB:20</text>
               </g>
               <g transform={`translate(0, ${padding.top + 2 * barHeight + 60})`} style={{ cursor: 'pointer' }} onMouseMove={(e) => handleMouseMove(e, 'cool', barData.cool)} onMouseLeave={handleMouseLeave}>
-                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">Cool</text>
+                <text x={padding.left - 6} y={barHeight / 2 + 4} fontSize={10} fill="#9ca3af" textAnchor="end">制冷</text>
                 <rect x={getX(24.5)} y={0} width={getX(27.5) - getX(24.5)} height={barHeight} fill={hover?.element === 'cool' ? '#34d399' : '#10b981'} opacity={hover?.element === 'cool' ? 0.35 : 0.2} rx={4} stroke="#10b981" strokeWidth={hover?.element === 'cool' ? 2 : 1} strokeDasharray={hover?.element === 'cool' ? '0' : '3,2'} />
                 <line x1={getX(26)} y1={0} x2={getX(26)} y2={barHeight} stroke="#10b981" strokeWidth={2} />
                 <text x={getX(26)} y={-4} fontSize={8} fill="#10b981" textAnchor="middle">GB:26</text>
               </g>
             </svg>
-            <div style={{ fontSize: 10, color: '#6b7280', marginTop: 4 }}>Heating SP 4–6°C above GB standard</div>
+            <div style={{ fontSize: 10, color: '#6b7280', marginTop: 4 }}>供暖设定点高于国标 4–6°C</div>
             <Tooltip />
           </div>
         );
@@ -121,8 +121,8 @@
           <div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 6, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, minWidth: 105, pointerEvents: 'none', fontSize: 10 }}>
             <div style={{ fontWeight: 700, color: building === 'B1' ? '#60a5fa' : '#fb923c', marginBottom: 4 }}>{building}</div>
             <div style={{ color: '#9ca3af', lineHeight: 1.6 }}>
-              <div>Q1: {d.q1 > 0 ? '+' : ''}{d.q1}°C</div><div><strong style={{ color: '#e5e7eb' }}>Median: {d.median > 0 ? '+' : ''}{d.median}°C</strong></div><div>Q3: {d.q3 > 0 ? '+' : ''}{d.q3}°C</div>
-              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid #374151' }}>Hours: {d.hours.toLocaleString()}<br />Compliance: {d.compliance}%</div>
+              <div>下四分位: {d.q1 > 0 ? '+' : ''}{d.q1}°C</div><div><strong style={{ color: '#e5e7eb' }}>中位数: {d.median > 0 ? '+' : ''}{d.median}°C</strong></div><div>上四分位: {d.q3 > 0 ? '+' : ''}{d.q3}°C</div>
+              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px solid #374151' }}>小时数: {d.hours.toLocaleString()}<br />符合率: {d.compliance}%</div>
             </div>
           </div>
         );
@@ -151,7 +151,7 @@
             </svg>
             {localHover?.element === 'B1' && <Tooltip data={localHover.data} building="B1" />}
             {localHover?.element === 'B2' && <Tooltip data={localHover.data} building="B2" />}
-            {localHover?.element === 'gap' && (<div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#78350f', border: '1px solid #f59e0b', borderRadius: 6, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, pointerEvents: 'none' }}><div style={{ fontWeight: 700, fontSize: 11, color: '#fbbf24' }}>Gap: {localHover.data.gap}°C</div><div style={{ fontSize: 10, color: '#fcd34d' }}>{localHover.data.label}</div></div>)}
+            {localHover?.element === 'gap' && (<div style={{ position: 'absolute', left: tooltipPos.x, top: tooltipPos.y, backgroundColor: '#78350f', border: '1px solid #f59e0b', borderRadius: 6, padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 100, pointerEvents: 'none' }}><div style={{ fontWeight: 700, fontSize: 11, color: '#fbbf24' }}>差距: {localHover.data.gap}°C</div><div style={{ fontSize: 10, color: '#fcd34d' }}>{localHover.data.label}</div></div>)}
           </div>
         );
       };
@@ -159,31 +159,31 @@
       return (
         <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", backgroundColor: '#111827', minHeight: '100vh', padding: '32px 40px', width: '100%', maxWidth: 1200, minWidth: 900, margin: '0 auto', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', gap: 20, marginBottom: 20, padding: '10px 16px', backgroundColor: '#1f2937', borderRadius: 8, border: '1px solid #374151', width: 'fit-content' }}>
-            {Object.entries(ratingConfig).map(([rating, config]) => (<div key={rating} style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: config.color, color: '#1f2937', fontSize: 9, fontWeight: 700 }}>{config.label}</span><span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{rating === 'Excellent' ? '≥90%' : rating === 'Good' ? '80–89%' : rating === 'Acceptable' ? '70–79%' : '<70%'}</span></div>))}
+            {Object.entries(ratingConfig).map(([rating, config]) => (<div key={rating} style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', backgroundColor: config.color, color: '#1f2937', fontSize: 9, fontWeight: 700 }}>{config.label}</span><span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{rating === 'Excellent' ? '优秀 ≥90%' : rating === 'Good' ? '良好 80–89%' : rating === 'Acceptable' ? '合格 70–79%' : '不合格 <70%'}</span></div>))}
           </div>
 
           <div style={{ backgroundColor: '#1f2937', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.3)', overflow: 'hidden', marginBottom: 24, border: '1px solid #374151' }}>
             <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ color: '#e5e7eb', fontSize: 13, fontWeight: 600, margin: 0, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Performance by Season</h2>
-              <span style={{ color: '#6b7280', fontSize: 11, fontWeight: 500 }}>SP Compliance: % active hours within ±0.5°C | Off-Hour Use: 23:00–06:00 active rate</span>
+              <h2 style={{ color: '#e5e7eb', fontSize: 13, fontWeight: 600, margin: 0, letterSpacing: '0.03em', textTransform: 'uppercase' }}>季节性能</h2>
+              <span style={{ color: '#6b7280', fontSize: 11, fontWeight: 500 }}>设定点符合率：±0.5°C范围内的运行小时数占比 | 非工作时段使用：23:00–06:00活跃率</span>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: '#374151' }}>
-                  <th style={{ padding: '12px 20px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>Season</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>Months</th>
+                  <th style={{ padding: '12px 20px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>季节</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>月份</th>
                   <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }} colSpan={2}>B1</th>
                   <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }} colSpan={2}>B2</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }}>Energy</th>
-                  <th style={{ padding: '12px 20px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>Share</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563', borderLeft: '1px solid #4b5563' }}>能耗</th>
+                  <th style={{ padding: '12px 20px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #4b5563' }}>占比</th>
                 </tr>
                 <tr style={{ backgroundColor: '#374151' }}>
                   <th style={{ padding: '6px 20px', borderBottom: '1px solid #4b5563' }}></th>
                   <th style={{ padding: '6px 16px', borderBottom: '1px solid #4b5563' }}></th>
-                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}>SP Compliance</th>
-                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563' }}>Off-Hour Use</th>
-                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}>SP Compliance</th>
-                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563' }}>Off-Hour Use</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}>设定点符合率</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563' }}>非工作时段使用</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}>设定点符合率</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'center', fontSize: 9, fontWeight: 500, color: '#6b7280', borderBottom: '1px solid #4b5563' }}>非工作时段使用</th>
                   <th style={{ padding: '6px 16px', borderBottom: '1px solid #4b5563', borderLeft: '1px solid #4b5563' }}></th>
                   <th style={{ padding: '6px 20px', borderBottom: '1px solid #4b5563' }}></th>
                 </tr>
@@ -218,23 +218,23 @@
           <div style={{ display: 'flex', gap: 20 }}>
             <SetpointGraphic />
             <div style={{ flex: 1, backgroundColor: '#1f2937', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.3)', border: '1px solid #374151', minHeight: 380 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e7eb', marginBottom: 4 }}>AFDD: Peak Stress Evaluation</div>
-              <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>Deviation from Setpoint (Return − SP) — hover for details</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e7eb', marginBottom: 4 }}>AFDD：峰值负荷评估</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>设定点偏差（回风温度 − 设定点）— 悬停查看详情</div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
                 <BoxPlotPanel data={afddData.heating} yMin={-3} yMax={4} goodZone="above" />
                 <BoxPlotPanel data={afddData.cooling} yMin={-2} yMax={3} goodZone="below" />
               </div>
               <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 10, fontSize: 9, color: '#6b7280' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, backgroundColor: '#064e3b', border: '1px solid #10b981', borderRadius: 2 }}></span>Target</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, backgroundColor: '#78350f', border: '1px dashed #f59e0b', borderRadius: 2 }}></span>Gap</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, backgroundColor: '#064e3b', border: '1px solid #10b981', borderRadius: 2 }}></span>目标区</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, backgroundColor: '#78350f', border: '1px dashed #f59e0b', borderRadius: 2 }}></span>差距</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 2, backgroundColor: '#ef4444' }}></span>SP</span>
               </div>
             </div>
           </div>
 
           <div style={{ marginTop: 20, display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280' }}>
-            <span>B1: 69 devices, 30 zones • B2: 66 devices, 28 zones</span>
-            <span>Energy: B2 metered • Dec 2024 – Dec 2025</span>
+            <span>B1：69台设备，30个区域 • B2：66台设备，28个区域</span>
+            <span>能耗：B2计量 • 2024年12月 – 2025年12月</span>
           </div>
         </div>
       );
