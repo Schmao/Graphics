@@ -4,14 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Temperature Prediction Panel - NYUSH</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background-color: #111827; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .panel { background-color: #111827; color: #f3f4f6; padding: 16px; border-radius: 8px; width: 100%; max-width: 512px; min-height: 260px; }
-    .chart-container { height: 176px; }
+    .chart-container { height: 200px; position: relative; }
     .legend { display: flex; justify-content: center; gap: 12px; margin-top: 8px; font-size: 12px; }
     .legend-item { display: flex; align-items: center; gap: 4px; }
     .legend-line { width: 12px; height: 2px; }
@@ -21,137 +19,233 @@
     .bg-amber { background-color: #f59e0b; }
     .bg-cyan { background-color: #06b6d4; }
     .bg-cyan-transparent { background-color: #06b6d4; opacity: 0.2; }
-    .tooltip { background-color: #1f2937; border: 1px solid #4b5563; border-radius: 4px; padding: 8px 12px; font-size: 12px; }
-    .tooltip-label { color: #d1d5db; font-weight: 500; margin-bottom: 4px; }
-    .tooltip-actual { color: #10b981; }
-    .tooltip-predicted { color: #f59e0b; }
-    .tooltip-forecast { color: #06b6d4; }
-    .tooltip-range { color: #6b7280; font-size: 11px; }
-    .tooltip-current { color: #9ca3af; font-size: 11px; margin-top: 4px; }
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script>
-    var ComposedChart = Recharts.ComposedChart;
-    var Line = Recharts.Line;
-    var XAxis = Recharts.XAxis;
-    var YAxis = Recharts.YAxis;
-    var Tooltip = Recharts.Tooltip;
-    var ResponsiveContainer = Recharts.ResponsiveContainer;
-    var ReferenceLine = Recharts.ReferenceLine;
-    var Area = Recharts.Area;
+  <div class="panel">
+    <div class="chart-container">
+      <canvas id="tempChart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-line bg-emerald"></div>
+        <span class="legend-text">Actual</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line bg-amber" style="border-top: 2px dashed #f59e0b; background: none;"></div>
+        <span class="legend-text">Past Prediction</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line bg-cyan" style="border-top: 2px dashed #06b6d4; background: none;"></div>
+        <span class="legend-text">Forecast</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box bg-cyan-transparent"></div>
+        <span class="legend-text">Uncertainty</span>
+      </div>
+    </div>
+  </div>
 
-    function TemperaturePredictionPanel() {
-      var hourlyAvg = { 13: 23.14, 14: 23.30, 15: 23.38, 16: 23.35, 17: 23.22, 18: 22.70, 19: 22.61 };
-      
-      var generateData = function() {
-        var data = [];
-        var currentHour = 16;
+  <script>
+    var hourlyAvg = { 13: 23.14, 14: 23.30, 15: 23.38, 16: 23.35, 17: 23.22, 18: 22.70, 19: 22.61 };
+    var currentHour = 16;
+    
+    var labels = [];
+    var actualData = [];
+    var predictedData = [];
+    var forecastData = [];
+    var upperBand = [];
+    var lowerBand = [];
+    
+    for (var hour = 13; hour <= 19; hour++) {
+      for (var min = 0; min < 60; min += 30) {
+        if (hour === 19 && min > 0) break;
         
-        for (var hour = 13; hour <= 19; hour++) {
-          for (var min = 0; min < 60; min += 30) {
-            if (hour === 19 && min > 0) break;
-            
-            var timeStr = String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0');
-            var timeMinutes = hour * 60 + min;
-            var nowMinutes = currentHour * 60;
-            
-            var hourFraction = min / 60;
-            var nextHour = Math.min(hour + 1, 19);
-            var baseTemp = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
-            
-            var variation = Math.sin(timeMinutes * 0.05) * 0.15 + Math.cos(timeMinutes * 0.03) * 0.1;
-            var actual = Math.round((baseTemp + variation) * 10) / 10;
-            
-            var isPast = timeMinutes < nowMinutes;
-            var isNow = timeMinutes === nowMinutes;
-            var isFuture = timeMinutes > nowMinutes;
-            
-            var predictionError = (Math.sin(timeMinutes * 0.02) * 0.2 + Math.cos(timeMinutes * 0.015) * 0.1);
-            var predicted = Math.round((actual + predictionError) * 10) / 10;
-            
-            var forecastBase = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
-            var forecast = Math.round((forecastBase + variation * 0.5) * 10) / 10;
-            
-            var hoursIntoFuture = isFuture ? (timeMinutes - nowMinutes) / 60 : 0;
-            var uncertainty = 0.1 + (hoursIntoFuture * 0.13);
-            
-            data.push({
-              time: timeStr,
-              actual: isPast || isNow ? actual : null,
-              predicted: isPast ? predicted : (isNow ? actual : null),
-              forecast: isNow ? actual : (isFuture ? forecast : null),
-              forecastUpper: (isNow || isFuture) ? Math.round(((isNow ? actual : forecast) + (isNow ? 0 : uncertainty)) * 10) / 10 : null,
-              forecastLower: (isNow || isFuture) ? Math.round(((isNow ? actual : forecast) - (isNow ? 0 : uncertainty)) * 10) / 10 : null,
-              isNow: isNow
-            });
+        var timeStr = String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+        labels.push(timeStr);
+        
+        var timeMinutes = hour * 60 + min;
+        var nowMinutes = currentHour * 60;
+        
+        var hourFraction = min / 60;
+        var nextHour = Math.min(hour + 1, 19);
+        var baseTemp = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
+        
+        var variation = Math.sin(timeMinutes * 0.05) * 0.15 + Math.cos(timeMinutes * 0.03) * 0.1;
+        var actual = Math.round((baseTemp + variation) * 10) / 10;
+        
+        var isPast = timeMinutes < nowMinutes;
+        var isNow = timeMinutes === nowMinutes;
+        var isFuture = timeMinutes > nowMinutes;
+        
+        var predictionError = (Math.sin(timeMinutes * 0.02) * 0.2 + Math.cos(timeMinutes * 0.015) * 0.1);
+        var predicted = Math.round((actual + predictionError) * 10) / 10;
+        
+        var forecastBase = hourlyAvg[hour] + (hourlyAvg[nextHour] - hourlyAvg[hour]) * hourFraction;
+        var forecast = Math.round((forecastBase + variation * 0.5) * 10) / 10;
+        
+        var hoursIntoFuture = isFuture ? (timeMinutes - nowMinutes) / 60 : 0;
+        var uncertainty = 0.1 + (hoursIntoFuture * 0.13);
+        
+        actualData.push(isPast || isNow ? actual : null);
+        predictedData.push(isPast ? predicted : (isNow ? actual : null));
+        forecastData.push(isNow ? actual : (isFuture ? forecast : null));
+        upperBand.push((isNow || isFuture) ? Math.round(((isNow ? actual : forecast) + (isNow ? 0 : uncertainty)) * 10) / 10 : null);
+        lowerBand.push((isNow || isFuture) ? Math.round(((isNow ? actual : forecast) - (isNow ? 0 : uncertainty)) * 10) / 10 : null);
+      }
+    }
+    
+    var nowIndex = labels.indexOf('16:00');
+    
+    var ctx = document.getElementById('tempChart').getContext('2d');
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Upper Band',
+            data: upperBand,
+            borderColor: 'transparent',
+            backgroundColor: 'rgba(6, 182, 212, 0.15)',
+            fill: '+1',
+            pointRadius: 0,
+            tension: 0.3
+          },
+          {
+            label: 'Lower Band',
+            data: lowerBand,
+            borderColor: 'transparent',
+            backgroundColor: 'rgba(6, 182, 212, 0.15)',
+            fill: false,
+            pointRadius: 0,
+            tension: 0.3
+          },
+          {
+            label: 'Actual',
+            data: actualData,
+            borderColor: '#10B981',
+            backgroundColor: '#10B981',
+            borderWidth: 2,
+            fill: false,
+            pointRadius: 0,
+            tension: 0.3
+          },
+          {
+            label: 'Past Prediction',
+            data: predictedData,
+            borderColor: '#F59E0B',
+            backgroundColor: '#F59E0B',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            fill: false,
+            pointRadius: 0,
+            tension: 0.3
+          },
+          {
+            label: 'Forecast',
+            data: forecastData,
+            borderColor: '#06B6D4',
+            backgroundColor: '#06B6D4',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            fill: false,
+            pointRadius: 0,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#1f2937',
+            borderColor: '#4b5563',
+            borderWidth: 1,
+            titleColor: '#d1d5db',
+            bodyColor: '#9ca3af',
+            callbacks: {
+              label: function(context) {
+                if (context.dataset.label === 'Upper Band' || context.dataset.label === 'Lower Band') {
+                  return null;
+                }
+                if (context.raw === null) return null;
+                return context.dataset.label + ': ' + context.raw + '°C';
+              }
+            }
+          },
+          annotation: {
+            annotations: {
+              nowLine: {
+                type: 'line',
+                xMin: nowIndex,
+                xMax: nowIndex,
+                borderColor: '#6B7280',
+                borderWidth: 1,
+                borderDash: [4, 4],
+                label: {
+                  display: true,
+                  content: 'Now',
+                  position: 'start',
+                  color: '#9CA3AF',
+                  font: { size: 10 }
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#9CA3AF', font: { size: 10 } },
+            border: { color: '#4B5563' }
+          },
+          y: {
+            min: 21.5,
+            max: 24.5,
+            grid: { display: false },
+            ticks: { 
+              color: '#9CA3AF', 
+              font: { size: 10 },
+              callback: function(value) { return value + '°'; }
+            },
+            border: { color: '#4B5563' }
           }
         }
-        return data;
-      };
-      
-      var data = generateData();
-      
-      var CustomTooltip = function(props) {
-        var active = props.active;
-        var payload = props.payload;
-        var label = props.label;
-        if (active && payload && payload.length) {
-          var item = payload[0].payload;
-          return React.createElement('div', { className: 'tooltip' },
-            React.createElement('div', { className: 'tooltip-label' }, label),
-            item.actual !== null && React.createElement('div', { className: 'tooltip-actual' }, 'Actual: ' + item.actual + '\u00B0C'),
-            item.predicted !== null && !item.isNow && React.createElement('div', { className: 'tooltip-predicted' }, 'Predicted: ' + item.predicted + '\u00B0C'),
-            item.forecast !== null && !item.isNow && React.createElement('div', null,
-              React.createElement('div', { className: 'tooltip-forecast' }, 'Forecast: ' + item.forecast + '\u00B0C'),
-              item.forecastUpper && React.createElement('div', { className: 'tooltip-range' }, 'Range: ' + item.forecastLower + '\u00B0C - ' + item.forecastUpper + '\u00B0C')
-            ),
-            item.isNow && React.createElement('div', { className: 'tooltip-current' }, 'Current reading')
-          );
+      },
+      plugins: [{
+        id: 'nowLine',
+        afterDraw: function(chart) {
+          var ctx = chart.ctx;
+          var xAxis = chart.scales.x;
+          var yAxis = chart.scales.y;
+          var x = xAxis.getPixelForValue(nowIndex);
+          
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = '#6B7280';
+          ctx.lineWidth = 1;
+          ctx.moveTo(x, yAxis.top);
+          ctx.lineTo(x, yAxis.bottom);
+          ctx.stroke();
+          
+          ctx.fillStyle = '#9CA3AF';
+          ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Now', x, yAxis.top - 5);
+          ctx.restore();
         }
-        return null;
-      };
-
-      return React.createElement('div', { className: 'panel' },
-        React.createElement('div', { className: 'chart-container' },
-          React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
-            React.createElement(ComposedChart, { data: data, margin: { top: 5, right: 5, left: -20, bottom: 5 } },
-              React.createElement(XAxis, { dataKey: 'time', tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, interval: 1 }),
-              React.createElement(YAxis, { domain: [21.5, 24.5], tick: { fill: '#9CA3AF', fontSize: 10 }, tickLine: { stroke: '#4B5563' }, axisLine: { stroke: '#4B5563' }, tickFormatter: function(val) { return val + '\u00B0'; } }),
-              React.createElement(Tooltip, { content: React.createElement(CustomTooltip) }),
-              React.createElement(ReferenceLine, { x: '16:00', stroke: '#6B7280', strokeDasharray: '4 4', label: { value: 'Now', position: 'top', fill: '#9CA3AF', fontSize: 10 } }),
-              React.createElement(Area, { type: 'monotone', dataKey: 'forecastUpper', stroke: 'none', fill: '#06B6D4', fillOpacity: 0.15 }),
-              React.createElement(Area, { type: 'monotone', dataKey: 'forecastLower', stroke: 'none', fill: '#111827', fillOpacity: 1 }),
-              React.createElement(Line, { type: 'monotone', dataKey: 'actual', stroke: '#10B981', strokeWidth: 2, dot: false }),
-              React.createElement(Line, { type: 'monotone', dataKey: 'predicted', stroke: '#F59E0B', strokeWidth: 2, strokeDasharray: '6 3', dot: false }),
-              React.createElement(Line, { type: 'monotone', dataKey: 'forecast', stroke: '#06B6D4', strokeWidth: 2, strokeDasharray: '6 3', dot: false })
-            )
-          )
-        ),
-        React.createElement('div', { className: 'legend' },
-          React.createElement('div', { className: 'legend-item' },
-            React.createElement('div', { className: 'legend-line bg-emerald' }),
-            React.createElement('span', { className: 'legend-text' }, 'Actual')
-          ),
-          React.createElement('div', { className: 'legend-item' },
-            React.createElement('div', { className: 'legend-line bg-amber' }),
-            React.createElement('span', { className: 'legend-text' }, 'Past Prediction')
-          ),
-          React.createElement('div', { className: 'legend-item' },
-            React.createElement('div', { className: 'legend-line bg-cyan' }),
-            React.createElement('span', { className: 'legend-text' }, 'Forecast')
-          ),
-          React.createElement('div', { className: 'legend-item' },
-            React.createElement('div', { className: 'legend-box bg-cyan-transparent' }),
-            React.createElement('span', { className: 'legend-text' }, 'Uncertainty')
-          )
-        )
-      );
-    }
-
-    var root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(TemperaturePredictionPanel));
+      }]
+    });
   </script>
 </body>
 </html>
