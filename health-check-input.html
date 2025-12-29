@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaiamesh™ Building Energy Health Check</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* ============================================
+           CORE STYLES (aligned with D1/D2 reports)
+           ============================================ */
+        :root {
+            /* Primary palette (matching report) */
+            --primary: #1a365d;
+            --secondary: #2c5282;
+            --accent: #3182ce;
+            --light-bg: #f7fafc;
+            --border: #e2e8f0;
+            --text: #2d3748;
+            --muted: #718096;
+            
+            /* Status colors */
+            --success: #276749;
+            --warning: #c05621;
+            --danger: #c53030;
+            --info: #2b6cb0;
+            
+            /* Gaiamesh brand */
+            --gaia-teal: #2E86AB;
+            --gaia-coral: #E76F51;
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: var(--text);
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            min-height: 100vh;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+    const { useState, useCallback, useMemo, useEffect } = React;
+
+    // ============================================
+    // DATA OPTIONS (from Excel files)
+    // ============================================
+    const DATA_OPTIONS = {
+        regions: ['China Mainland', 'Hong Kong', 'Singapore', 'Thailand', 'United States', 'Europe'],
+        buildingTypes: [
+            'Standalone Office',
+            'Higher Education',
+            'Landlords / Property Owners',
+            'Office Tenants',
+            'Retail',
+            'Shopping Mall',
+            'Industrial',
+            'Data Center',
+            'Hotel / Hospitality',
+            'Healthcare'
+        ],
+        thermalSources: ['District, Building', 'District', 'Building', 'Split System', 'VRF/VRV'],
+        useTypes: ['office', 'education', 'retail', 'industrial', 'mixed-use', 'residential', 'laboratory'],
+        holidaySchedules: ['China Public Holidays', 'Hong Kong Public Holidays', 'US Federal Holidays', 'Custom'],
+        equipmentTypes: [
+            'Chiller',
+            'Boiler',
+            'Cooling Tower',
+            'AHU (Air Handling Unit)',
+            'FCU (Fan Coil Unit)',
+            'VRF/VRV Indoor Unit',
+            'VRF/VRV Outdoor Unit',
+            'Split AC',
+            'PAU (Primary Air Unit)',
+            'Pump - Chilled Water',
+            'Pump - Hot Water',
+            'Pump - Condenser Water',
+            'Lighting Panel',
+            'Power Meter',
+            'BMS Controller'
+        ],
+        utilityTypes: ['Electricity', 'Natural Gas', 'District Cooling', 'District Heating', 'Water', 'Steam'],
+        cities: ['Shanghai', 'Beijing', 'Hong Kong', 'Singapore', 'Bangkok', 'San Francisco', 'Lisbon']
+    };
+
+    // Sample clients from Excel
+    const SAMPLE_CLIENTS = [
+        'M&G', 'East China Normal University', 'Jiachun Group', 'Noah Holdings',
+        'Starbucks', 'JLL', 'Wanda', 'NYU Shanghai'
+    ];
+
+    // ============================================
+    // ICON COMPONENTS
+    // ============================================
+    const Icons = {
+        Building: () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                <path d="M9 22v-4h6v4"></path>
+                <path d="M8 6h.01"></path>
+                <path d="M16 6h.01"></path>
+                <path d="M12 6h.01"></path>
+                <path d="M12 10h.01"></path>
+                <path d="M12 14h.01"></path>
+                <path d="M16 10h.01"></path>
+                <path d="M16 14h.01"></path>
+                <path d="M8 10h.01"></path>
+                <path d="M8 14h.01"></path>
+            </svg>
+        ),
+        Layout: () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+        ),
+        Clock: () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        ),
+        Settings: () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+        ),
+        FileText: () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+        ),
+        Plus: () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        ),
+        Trash: () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+        ),
+        Check: () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        ),
+        ChevronRight: () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        ),
+        ChevronLeft: () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        ),
+        Upload: () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        ),
+        Download: () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        )
+    };
+
+    // ============================================
+    // STEP DEFINITIONS
+    // ============================================
+    const STEPS = [
+        { id: 1, title: 'Building Identification', icon: Icons.Building, description: 'Basic building information and location' },
+        { id: 2, title: 'Building Configuration', icon: Icons.Layout, description: 'Zones, floors, and area breakdown' },
+        { id: 3, title: 'Operating Schedules', icon: Icons.Clock, description: 'Occupancy and HVAC schedules' },
+        { id: 4, title: 'Equipment Lists', icon: Icons.Settings, description: 'HVAC and electrical equipment inventory' },
+        { id: 5, title: 'Utility Bills', icon: Icons.FileText, description: 'Historical energy consumption data' }
+    ];
+
+    // ============================================
+    // STYLED COMPONENTS
+    // ============================================
+    const styles = {
+        container: {
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '20px',
+            minHeight: '100vh'
+        },
+        header: {
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '20px',
+            borderBottom: '3px solid #1a365d',
+            paddingBottom: '20px',
+            marginBottom: '30px',
+            background: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+        },
+        logoBox: {
+            width: '70px',
+            height: '70px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+        },
+        headerContent: {
+            flexGrow: 1
+        },
+        title: {
+            color: '#1a365d',
+            margin: '0 0 5px 0',
+            fontSize: '22pt',
+            fontWeight: '600'
+        },
+        subtitle: {
+            color: '#2c5282',
+            fontSize: '12pt',
+            margin: '0 0 12px 0'
+        },
+        badge: {
+            display: 'inline-block',
+            background: '#2E86AB',
+            color: 'white',
+            padding: '4px 14px',
+            borderRadius: '20px',
+            fontSize: '9pt',
+            fontWeight: '600'
+        },
+        progressContainer: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            marginBottom: '24px',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
+        },
+        stepsRow: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            position: 'relative'
+        },
+        stepItem: (isActive, isCompleted) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            flex: 1,
+            position: 'relative',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease'
+        }),
+        stepCircle: (isActive, isCompleted) => ({
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: isCompleted ? '#276749' : isActive ? '#1a365d' : '#e2e8f0',
+            color: isCompleted || isActive ? 'white' : '#718096',
+            transition: 'all 0.3s ease',
+            boxShadow: isActive ? '0 4px 12px rgba(26, 54, 93, 0.3)' : 'none',
+            transform: isActive ? 'scale(1.1)' : 'scale(1)'
+        }),
+        stepLabel: (isActive, isCompleted) => ({
+            marginTop: '10px',
+            fontSize: '9pt',
+            fontWeight: isActive ? '600' : '400',
+            color: isActive ? '#1a365d' : isCompleted ? '#276749' : '#718096',
+            textAlign: 'center',
+            maxWidth: '100px'
+        }),
+        stepConnector: (isCompleted) => ({
+            position: 'absolute',
+            top: '24px',
+            left: 'calc(50% + 30px)',
+            width: 'calc(100% - 60px)',
+            height: '3px',
+            background: isCompleted ? '#276749' : '#e2e8f0',
+            transition: 'background 0.3s ease'
+        }),
+        formCard: {
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            marginBottom: '24px'
+        },
+        formSection: {
+            marginBottom: '28px'
+        },
+        sectionTitle: {
+            color: '#2c5282',
+            fontSize: '13pt',
+            fontWeight: '600',
+            borderBottom: '2px solid #e2e8f0',
+            paddingBottom: '10px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+        },
+        formGrid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px'
+        },
+        formGroup: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+        },
+        label: {
+            fontSize: '10pt',
+            fontWeight: '500',
+            color: '#4a5568'
+        },
+        required: {
+            color: '#c53030',
+            marginLeft: '2px'
+        },
+        input: {
+            padding: '12px 14px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            fontSize: '10pt',
+            transition: 'all 0.2s ease',
+            outline: 'none'
+        },
+        select: {
+            padding: '12px 14px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            fontSize: '10pt',
+            background: 'white',
+            cursor: 'pointer',
+            outline: 'none'
+        },
+        textarea: {
+            padding: '12px 14px',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            fontSize: '10pt',
+            minHeight: '80px',
+            resize: 'vertical',
+            fontFamily: 'inherit',
+            outline: 'none'
+        },
+        buttonRow: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px',
+            marginTop: '20px',
+            paddingTop: '20px',
+            borderTop: '1px solid #e2e8f0'
+        },
+        button: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            fontSize: '10pt',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            border: 'none'
+        },
+        primaryButton: {
+            background: '#1a365d',
+            color: 'white'
+        },
+        secondaryButton: {
+            background: '#f7fafc',
+            color: '#4a5568',
+            border: '1px solid #e2e8f0'
+        },
+        successButton: {
+            background: '#276749',
+            color: 'white'
+        },
+        dangerButton: {
+            background: '#fff5f5',
+            color: '#c53030',
+            border: '1px solid #feb2b2'
+        },
+        addButton: {
+            background: '#ebf8ff',
+            color: '#2b6cb0',
+            border: '1px solid #90cdf4',
+            padding: '10px 16px'
+        },
+        itemCard: {
+            background: '#f7fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            padding: '20px',
+            marginBottom: '16px',
+            position: 'relative'
+        },
+        itemHeader: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px'
+        },
+        itemTitle: {
+            fontSize: '11pt',
+            fontWeight: '600',
+            color: '#2c5282'
+        },
+        deleteBtn: {
+            background: 'transparent',
+            border: 'none',
+            color: '#c53030',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.2s ease'
+        },
+        fileUpload: {
+            border: '2px dashed #e2e8f0',
+            borderRadius: '10px',
+            padding: '24px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            background: '#fafafa'
+        },
+        fileUploadActive: {
+            borderColor: '#3182ce',
+            background: '#ebf8ff'
+        },
+        summaryCard: {
+            background: 'linear-gradient(135deg, #1a365d 0%, #2c5282 100%)',
+            borderRadius: '12px',
+            padding: '24px',
+            color: 'white',
+            marginBottom: '24px'
+        },
+        summaryGrid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '16px',
+            marginTop: '16px'
+        },
+        summaryItem: {
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: '8px',
+            padding: '14px',
+            textAlign: 'center'
+        },
+        summaryValue: {
+            fontSize: '20pt',
+            fontWeight: '700',
+            marginBottom: '4px'
+        },
+        summaryLabel: {
+            fontSize: '9pt',
+            opacity: '0.8'
+        },
+        note: {
+            background: '#ebf8ff',
+            borderLeft: '4px solid #3182ce',
+            padding: '12px 16px',
+            marginTop: '16px',
+            borderRadius: '0 8px 8px 0',
+            fontSize: '10pt',
+            color: '#2b6cb0'
+        }
+    };
+
+    // ============================================
+    // FORM COMPONENTS
+    // ============================================
+    const FormInput = ({ label, required, type = 'text', value, onChange, placeholder, ...props }) => (
+        <div style={styles.formGroup}>
+            <label style={styles.label}>
+                {label}
+                {required && <span style={styles.required}>*</span>}
+            </label>
+            <input 
+                type={type}
+                style={styles.input}
+                value={value || ''}
+                onChange={e => onChange(e.target.value)}
+                placeholder={placeholder}
+                onFocus={e => e.target.style.borderColor = '#3182ce'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                {...props}
+            />
+        </div>
+    );
+
+    const FormSelect = ({ label, required, options, value, onChange, placeholder }) => (
+        <div style={styles.formGroup}>
+            <label style={styles.label}>
+                {label}
+                {required && <span style={styles.required}>*</span>}
+            </label>
+            <select 
+                style={styles.select}
+                value={value || ''}
+                onChange={e => onChange(e.target.value)}
+                onFocus={e => e.target.style.borderColor = '#3182ce'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            >
+                <option value="">{placeholder || `Select ${label}`}</option>
+                {options.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                ))}
+            </select>
+        </div>
+    );
+
+    const FormTextarea = ({ label, required, value, onChange, placeholder, rows = 3 }) => (
+        <div style={styles.formGroup}>
+            <label style={styles.label}>
+                {label}
+                {required && <span style={styles.required}>*</span>}
+            </label>
+            <textarea 
+                style={styles.textarea}
+                value={value || ''}
+                onChange={e => onChange(e.target.value)}
+                placeholder={placeholder}
+                rows={rows}
+                onFocus={e => e.target.style.borderColor = '#3182ce'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+        </div>
+    );
+
+    const FileUploadZone = ({ label, files, onFilesChange }) => {
+        const [isDragging, setIsDragging] = useState(false);
+
+        const handleDrop = (e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const droppedFiles = Array.from(e.dataTransfer.files);
+            onFilesChange([...files, ...droppedFiles.map(f => f.name)]);
+        };
+
+        return (
+            <div style={styles.formGroup}>
+                <label style={styles.label}>{label}</label>
+                <div 
+                    style={{...styles.fileUpload, ...(isDragging ? styles.fileUploadActive : {})}}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('file-input-' + label.replace(/\s/g, '')).click()}
+                >
+                    <input 
+                        type="file" 
+                        id={'file-input-' + label.replace(/\s/g, '')}
+                        multiple 
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                            const newFiles = Array.from(e.target.files).map(f => f.name);
+                            onFilesChange([...files, ...newFiles]);
+                        }}
+                    />
+                    <div style={{ color: '#3182ce', marginBottom: '8px' }}><Icons.Upload /></div>
+                    <p style={{ color: '#718096', fontSize: '10pt', margin: 0 }}>
+                        Drag & drop files here, or <span style={{ color: '#3182ce', fontWeight: '500' }}>browse</span>
+                    </p>
+                    {files.length > 0 && (
+                        <div style={{ marginTop: '12px', textAlign: 'left' }}>
+                            {files.map((f, i) => (
+                                <div key={i} style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    background: 'white', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '4px', 
+                                    margin: '4px',
+                                    fontSize: '9pt',
+                                    border: '1px solid #e2e8f0'
+                                }}>
+                                    <Icons.FileText />
+                                    <span style={{ marginLeft: '6px' }}>{f}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // ============================================
+    // STEP CONTENT COMPONENTS
+    // ============================================
+
+    // Step 1: Building Identification
+    const Step1BuildingIdentification = ({ data, onChange }) => {
+        const updateField = (field, value) => {
+            onChange({ ...data, [field]: value });
+        };
+
+        return (
+            <div className="fade-in">
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>
+                        <Icons.Building /> Basic Information
+                    </h3>
+                    <div style={styles.formGrid}>
+                        <FormInput 
+                            label="Project ID" 
+                            required 
+                            value={data.projectId}
+                            onChange={v => updateField('projectId', v)}
+                            placeholder="e.g., CNM-25-035-MNG"
+                        />
+                        <FormInput 
+                            label="Building Name" 
+                            required 
+                            value={data.buildingName}
+                            onChange={v => updateField('buildingName', v)}
+                            placeholder="e.g., M&G Shanghai HQ"
+                        />
+                        <FormInput 
+                            label="Project Name" 
+                            required 
+                            value={data.projectName}
+                            onChange={v => updateField('projectName', v)}
+                            placeholder="e.g., M&G HQ AIoT Controls"
+                        />
+                        <FormSelect 
+                            label="Client" 
+                            required 
+                            options={SAMPLE_CLIENTS}
+                            value={data.client}
+                            onChange={v => updateField('client', v)}
+                        />
+                    </div>
+                </div>
+
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>Location Details</h3>
+                    <div style={styles.formGrid}>
+                        <FormTextarea 
+                            label="Full Address" 
+                            required 
+                            value={data.address}
+                            onChange={v => updateField('address', v)}
+                            placeholder="Building street address"
+                        />
+                        <FormSelect 
+                            label="City" 
+                            required 
+                            options={DATA_OPTIONS.cities}
+                            value={data.city}
+                            onChange={v => updateField('city', v)}
+                        />
+                        <FormSelect 
+                            label="Region" 
+                            required 
+                            options={DATA_OPTIONS.regions}
+                            value={data.region}
+                            onChange={v => updateField('region', v)}
+                        />
+                    </div>
+                </div>
+
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>Building Classification</h3>
+                    <div style={styles.formGrid}>
+                        <FormSelect 
+                            label="Building Type" 
+                            required 
+                            options={DATA_OPTIONS.buildingTypes}
+                            value={data.buildingType}
+                            onChange={v => updateField('buildingType', v)}
+                        />
+                        <FormSelect 
+                            label="Thermal Source" 
+                            required 
+                            options={DATA_OPTIONS.thermalSources}
+                            value={data.thermalSource}
+                            onChange={v => updateField('thermalSource', v)}
+                        />
+                    </div>
+                </div>
+
+                <div style={styles.note}>
+                    <strong>Tip:</strong> The Project ID follows the format CNM-YY-NNN-CLIENT-B# for unique building identification across all Gaiamesh projects.
+                </div>
+            </div>
+        );
+    };
+
+    // Step 2: Building Configuration
+    const Step2BuildingConfiguration = ({ data, onChange }) => {
+        const addZone = () => {
+            const zones = data.zones || [];
+            onChange({
+                ...data,
+                zones: [...zones, { id: Date.now(), name: '', floors: '', area: '', useType: '' }]
+            });
+        };
+
+        const updateZone = (index, field, value) => {
+            const zones = [...(data.zones || [])];
+            zones[index] = { ...zones[index], [field]: value };
+            onChange({ ...data, zones });
+        };
+
+        const removeZone = (index) => {
+            const zones = data.zones.filter((_, i) => i !== index);
+            onChange({ ...data, zones });
+        };
+
+        const zones = data.zones || [{ id: 1, name: '', floors: '', area: '', useType: '' }];
+
+        return (
+            <div className="fade-in">
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>
+                        <Icons.Layout /> Zone Configuration
+                    </h3>
+                    <p style={{ color: '#718096', fontSize: '10pt', marginBottom: '20px' }}>
+                        Define building zones, floors, and gross floor area (GFA) breakdown.
+                    </p>
+
+                    {zones.map((zone, index) => (
+                        <div key={zone.id} style={styles.itemCard} className="slide-in">
+                            <div style={styles.itemHeader}>
+                                <span style={styles.itemTitle}>Zone {index + 1}</span>
+                                {zones.length > 1 && (
+                                    <button 
+                                        style={styles.deleteBtn}
+                                        onClick={() => removeZone(index)}
+                                        onMouseOver={e => e.target.style.background = '#fff5f5'}
+                                        onMouseOut={e => e.target.style.background = 'transparent'}
+                                    >
+                                        <Icons.Trash />
+                                    </button>
+                                )}
+                            </div>
+                            <div style={styles.formGrid}>
+                                <FormInput 
+                                    label="Zone Name" 
+                                    required
+                                    value={zone.name}
+                                    onChange={v => updateZone(index, 'name', v)}
+                                    placeholder="e.g., Tower A, North Wing"
+                                />
+                                <FormInput 
+                                    label="Number of Floors" 
+                                    type="number"
+                                    required
+                                    value={zone.floors}
+                                    onChange={v => updateZone(index, 'floors', v)}
+                                    placeholder="e.g., 21"
+                                />
+                                <FormInput 
+                                    label="Gross Floor Area (m²)" 
+                                    type="number"
+                                    required
+                                    value={zone.area}
+                                    onChange={v => updateZone(index, 'area', v)}
+                                    placeholder="e.g., 31122"
+                                />
+                                <FormSelect 
+                                    label="Primary Use Type" 
+                                    required
+                                    options={DATA_OPTIONS.useTypes}
+                                    value={zone.useType}
+                                    onChange={v => updateZone(index, 'useType', v)}
+                                />
+                            </div>
+                        </div>
+                    ))}
+
+                    <button 
+                        style={{...styles.button, ...styles.addButton}}
+                        onClick={addZone}
+                    >
+                        <Icons.Plus /> Add Another Zone
+                    </button>
+                </div>
+
+                {zones.length > 0 && zones[0].area && (
+                    <div style={styles.summaryCard}>
+                        <h4 style={{ margin: 0, fontSize: '12pt' }}>Configuration Summary</h4>
+                        <div style={styles.summaryGrid}>
+                            <div style={styles.summaryItem}>
+                                <div style={styles.summaryValue}>{zones.length}</div>
+                                <div style={styles.summaryLabel}>Total Zones</div>
+                            </div>
+                            <div style={styles.summaryItem}>
+                                <div style={styles.summaryValue}>
+                                    {zones.reduce((sum, z) => sum + (parseInt(z.floors) || 0), 0)}
+                                </div>
+                                <div style={styles.summaryLabel}>Total Floors</div>
+                            </div>
+                            <div style={styles.summaryItem}>
+                                <div style={styles.summaryValue}>
+                                    {zones.reduce((sum, z) => sum + (parseInt(z.area) || 0), 0).toLocaleString()}
+                                </div>
+                                <div style={styles.summaryLabel}>Total GFA (m²)</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Step 3: Operating Schedules
+    const Step3OperatingSchedules = ({ data, onChange }) => {
+        const addSchedule = () => {
+            const schedules = data.schedules || [];
+            onChange({
+                ...data,
+                schedules: [...schedules, { 
+                    id: Date.now(), 
+                    name: '', 
+                    zoneName: '',
+                    weekdayStart: '',
+                    weekdayEnd: '',
+                    weekendStart: '',
+                    weekendEnd: '',
+                    holidaySchedule: '',
+                    setpoint: ''
+                }]
+            });
+        };
+
+        const updateSchedule = (index, field, value) => {
+            const schedules = [...(data.schedules || [])];
+            schedules[index] = { ...schedules[index], [field]: value };
+            onChange({ ...data, schedules });
+        };
+
+        const removeSchedule = (index) => {
+            const schedules = data.schedules.filter((_, i) => i !== index);
+            onChange({ ...data, schedules });
+        };
+
+        const schedules = data.schedules || [{ id: 1 }];
+        const timeOptions = Array.from({length: 24}, (_, i) => 
+            `${i.toString().padStart(2, '0')}:00`
+        );
+
+        return (
+            <div className="fade-in">
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>
+                        <Icons.Clock /> Operating Schedules
+                    </h3>
+                    <p style={{ color: '#718096', fontSize: '10pt', marginBottom: '20px' }}>
+                        Define HVAC operating hours for each zone. Off-hours represent periods when HVAC can be reduced or shut down.
+                    </p>
+
+                    {schedules.map((schedule, index) => (
+                        <div key={schedule.id} style={styles.itemCard} className="slide-in">
+                            <div style={styles.itemHeader}>
+                                <span style={styles.itemTitle}>Schedule {index + 1}</span>
+                                {schedules.length > 1 && (
+                                    <button 
+                                        style={styles.deleteBtn}
+                                        onClick={() => removeSchedule(index)}
+                                    >
+                                        <Icons.Trash />
+                                    </button>
+                                )}
+                            </div>
+                            <div style={styles.formGrid}>
+                                <FormInput 
+                                    label="Schedule Name" 
+                                    value={schedule.name}
+                                    onChange={v => updateSchedule(index, 'name', v)}
+                                    placeholder="e.g., Standard Office Hours"
+                                />
+                                <FormInput 
+                                    label="Zone/Area Name" 
+                                    value={schedule.zoneName}
+                                    onChange={v => updateSchedule(index, 'zoneName', v)}
+                                    placeholder="e.g., Building 1"
+                                />
+                            </div>
+                            
+                            <div style={{ marginTop: '16px' }}>
+                                <label style={{ ...styles.label, marginBottom: '12px', display: 'block' }}>
+                                    Weekday Off-Hours (HVAC Reduced)
+                                </label>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <FormSelect 
+                                        label=""
+                                        options={timeOptions}
+                                        value={schedule.weekdayStart}
+                                        onChange={v => updateSchedule(index, 'weekdayStart', v)}
+                                        placeholder="Start Time"
+                                    />
+                                    <span style={{ color: '#718096' }}>to</span>
+                                    <FormSelect 
+                                        label=""
+                                        options={timeOptions}
+                                        value={schedule.weekdayEnd}
+                                        onChange={v => updateSchedule(index, 'weekdayEnd', v)}
+                                        placeholder="End Time"
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '16px' }}>
+                                <label style={{ ...styles.label, marginBottom: '12px', display: 'block' }}>
+                                    Weekend Off-Hours (HVAC Reduced)
+                                </label>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <FormSelect 
+                                        label=""
+                                        options={timeOptions}
+                                        value={schedule.weekendStart}
+                                        onChange={v => updateSchedule(index, 'weekendStart', v)}
+                                        placeholder="Start Time"
+                                    />
+                                    <span style={{ color: '#718096' }}>to</span>
+                                    <FormSelect 
+                                        label=""
+                                        options={timeOptions}
+                                        value={schedule.weekendEnd}
+                                        onChange={v => updateSchedule(index, 'weekendEnd', v)}
+                                        placeholder="End Time"
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ ...styles.formGrid, marginTop: '16px' }}>
+                                <FormSelect 
+                                    label="Holiday Schedule" 
+                                    options={DATA_OPTIONS.holidaySchedules}
+                                    value={schedule.holidaySchedule}
+                                    onChange={v => updateSchedule(index, 'holidaySchedule', v)}
+                                />
+                                <FormInput 
+                                    label="HVAC Setpoint (°C)" 
+                                    type="number"
+                                    value={schedule.setpoint}
+                                    onChange={v => updateSchedule(index, 'setpoint', v)}
+                                    placeholder="e.g., 24"
+                                />
+                            </div>
+                        </div>
+                    ))}
+
+                    <button 
+                        style={{...styles.button, ...styles.addButton}}
+                        onClick={addSchedule}
+                    >
+                        <Icons.Plus /> Add Another Schedule
+                    </button>
+                </div>
+
+                <div style={styles.note}>
+                    <strong>Note:</strong> Off-hours represent periods when HVAC systems can be powered down or run in setback mode. 
+                    This data is critical for calculating potential savings from schedule optimization.
+                </div>
+            </div>
+        );
+    };
+
+    // Step 4: Equipment Lists
+    const Step4EquipmentLists = ({ data, onChange }) => {
+        const addEquipment = () => {
+            const equipment = data.equipment || [];
+            onChange({
+                ...data,
+                equipment: [...equipment, { 
+                    id: Date.now(), 
+                    type: '',
+                    count: '',
+                    capacity: '',
+                    brand: '',
+                    model: '',
+                    yearInstalled: ''
+                }]
+            });
+        };
+
+        const updateEquipment = (index, field, value) => {
+            const equipment = [...(data.equipment || [])];
+            equipment[index] = { ...equipment[index], [field]: value };
+            onChange({ ...data, equipment });
+        };
+
+        const removeEquipment = (index) => {
+            const equipment = data.equipment.filter((_, i) => i !== index);
+            onChange({ ...data, equipment });
+        };
+
+        const updateFiles = (files) => {
+            onChange({ ...data, assetFiles: files });
+        };
+
+        const equipment = data.equipment || [{ id: 1 }];
+
+        return (
+            <div className="fade-in">
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>
+                        <Icons.Settings /> Equipment Inventory
+                    </h3>
+                    <p style={{ color: '#718096', fontSize: '10pt', marginBottom: '20px' }}>
+                        List major HVAC and electrical equipment. This helps estimate energy consumption breakdown and identify optimization opportunities.
+                    </p>
+
+                    {equipment.map((item, index) => (
+                        <div key={item.id} style={styles.itemCard} className="slide-in">
+                            <div style={styles.itemHeader}>
+                                <span style={styles.itemTitle}>Equipment {index + 1}</span>
+                                {equipment.length > 1 && (
+                                    <button 
+                                        style={styles.deleteBtn}
+                                        onClick={() => removeEquipment(index)}
+                                    >
+                                        <Icons.Trash />
+                                    </button>
+                                )}
+                            </div>
+                            <div style={styles.formGrid}>
+                                <FormSelect 
+                                    label="Equipment Type" 
+                                    required
+                                    options={DATA_OPTIONS.equipmentTypes}
+                                    value={item.type}
+                                    onChange={v => updateEquipment(index, 'type', v)}
+                                />
+                                <FormInput 
+                                    label="Quantity" 
+                                    type="number"
+                                    required
+                                    value={item.count}
+                                    onChange={v => updateEquipment(index, 'count', v)}
+                                    placeholder="e.g., 4"
+                                />
+                                <FormInput 
+                                    label="Capacity (kW or RT)" 
+                                    value={item.capacity}
+                                    onChange={v => updateEquipment(index, 'capacity', v)}
+                                    placeholder="e.g., 500 kW"
+                                />
+                                <FormInput 
+                                    label="Brand" 
+                                    value={item.brand}
+                                    onChange={v => updateEquipment(index, 'brand', v)}
+                                    placeholder="e.g., Daikin, Carrier"
+                                />
+                                <FormInput 
+                                    label="Model" 
+                                    value={item.model}
+                                    onChange={v => updateEquipment(index, 'model', v)}
+                                    placeholder="e.g., RXYQ-P"
+                                />
+                                <FormInput 
+                                    label="Year Installed" 
+                                    type="number"
+                                    value={item.yearInstalled}
+                                    onChange={v => updateEquipment(index, 'yearInstalled', v)}
+                                    placeholder="e.g., 2018"
+                                />
+                            </div>
+                        </div>
+                    ))}
+
+                    <button 
+                        style={{...styles.button, ...styles.addButton}}
+                        onClick={addEquipment}
+                    >
+                        <Icons.Plus /> Add Equipment
+                    </button>
+                </div>
+
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>Asset Documentation</h3>
+                    <FileUploadZone 
+                        label="Equipment Lists & Asset Files"
+                        files={data.assetFiles || []}
+                        onFilesChange={updateFiles}
+                    />
+                    <FormTextarea 
+                        label="Additional Notes" 
+                        value={data.equipmentNotes}
+                        onChange={v => onChange({ ...data, equipmentNotes: v })}
+                        placeholder="Any additional information about equipment, recent upgrades, known issues, etc."
+                    />
+                </div>
+            </div>
+        );
+    };
+
+    // Step 5: Utility Bills
+    const Step5UtilityBills = ({ data, onChange }) => {
+        const addBill = () => {
+            const bills = data.bills || [];
+            onChange({
+                ...data,
+                bills: [...bills, { 
+                    id: Date.now(), 
+                    utilityType: '',
+                    periodStart: '',
+                    periodEnd: '',
+                    consumption: '',
+                    cost: '',
+                    unit: ''
+                }]
+            });
+        };
+
+        const updateBill = (index, field, value) => {
+            const bills = [...(data.bills || [])];
+            bills[index] = { ...bills[index], [field]: value };
+            onChange({ ...data, bills });
+        };
+
+        const removeBill = (index) => {
+            const bills = data.bills.filter((_, i) => i !== index);
+            onChange({ ...data, bills });
+        };
+
+        const updateFiles = (files) => {
+            onChange({ ...data, billFiles: files });
+        };
+
+        const bills = data.bills || [{ id: 1 }];
+
+        return (
+            <div className="fade-in">
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>
+                        <Icons.FileText /> Utility Bill Records
+                    </h3>
+                    <p style={{ color: '#718096', fontSize: '10pt', marginBottom: '20px' }}>
+                        Provide 12-24 months of utility bill data for accurate baseline modeling and savings projections.
+                    </p>
+
+                    <FileUploadZone 
+                        label="Upload Utility Bills (Excel, CSV, PDF)"
+                        files={data.billFiles || []}
+                        onFilesChange={updateFiles}
+                    />
+                </div>
+
+                <div style={styles.formSection}>
+                    <h3 style={styles.sectionTitle}>Manual Entry (Optional)</h3>
+                    <p style={{ color: '#718096', fontSize: '10pt', marginBottom: '20px' }}>
+                        Alternatively, enter summary data manually for each billing period.
+                    </p>
+
+                    {bills.map((bill, index) => (
+                        <div key={bill.id} style={styles.itemCard} className="slide-in">
+                            <div style={styles.itemHeader}>
+                                <span style={styles.itemTitle}>Bill Record {index + 1}</span>
+                                {bills.length > 1 && (
+                                    <button 
+                                        style={styles.deleteBtn}
+                                        onClick={() => removeBill(index)}
+                                    >
+                                        <Icons.Trash />
+                                    </button>
+                                )}
+                            </div>
+                            <div style={styles.formGrid}>
+                                <FormSelect 
+                                    label="Utility Type" 
+                                    required
+                                    options={DATA_OPTIONS.utilityTypes}
+                                    value={bill.utilityType}
+                                    onChange={v => updateBill(index, 'utilityType', v)}
+                                />
+                                <FormInput 
+                                    label="Period Start" 
+                                    type="date"
+                                    value={bill.periodStart}
+                                    onChange={v => updateBill(index, 'periodStart', v)}
+                                />
+                                <FormInput 
+                                    label="Period End" 
+                                    type="date"
+                                    value={bill.periodEnd}
+                                    onChange={v => updateBill(index, 'periodEnd', v)}
+                                />
+                                <FormInput 
+                                    label="Consumption" 
+                                    type="number"
+                                    value={bill.consumption}
+                                    onChange={v => updateBill(index, 'consumption', v)}
+                                    placeholder="e.g., 125000"
+                                />
+                                <FormInput 
+                                    label="Unit" 
+                                    value={bill.unit}
+                                    onChange={v => updateBill(index, 'unit', v)}
+                                    placeholder="e.g., kWh, m³"
+                                />
+                                <FormInput 
+                                    label="Cost (¥ or $)" 
+                                    type="number"
+                                    value={bill.cost}
+                                    onChange={v => updateBill(index, 'cost', v)}
+                                    placeholder="e.g., 95000"
+                                />
+                            </div>
+                        </div>
+                    ))}
+
+                    <button 
+                        style={{...styles.button, ...styles.addButton}}
+                        onClick={addBill}
+                    >
+                        <Icons.Plus /> Add Bill Record
+                    </button>
+                </div>
+
+                <div style={styles.note}>
+                    <strong>Data Requirements:</strong> Minimum 12 months of utility data recommended for accurate baseline modeling. 
+                    Include all utility types (electricity, gas, district cooling/heating) if available.
+                </div>
+            </div>
+        );
+    };
+
+    // ============================================
+    // REVIEW SUMMARY COMPONENT
+    // ============================================
+    const ReviewSummary = ({ formData }) => {
+        const step1 = formData.step1 || {};
+        const step2 = formData.step2 || {};
+        const step3 = formData.step3 || {};
+        const step4 = formData.step4 || {};
+        const step5 = formData.step5 || {};
+
+        const zones = step2.zones || [];
+        const schedules = step3.schedules || [];
+        const equipment = step4.equipment || [];
+        const bills = step5.bills || [];
+
+        const totalArea = zones.reduce((sum, z) => sum + (parseInt(z.area) || 0), 0);
+        const totalFloors = zones.reduce((sum, z) => sum + (parseInt(z.floors) || 0), 0);
+        const totalEquipment = equipment.reduce((sum, e) => sum + (parseInt(e.count) || 0), 0);
+
+        return (
+            <div className="fade-in">
+                <div style={styles.summaryCard}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14pt' }}>Health Check Data Summary</h3>
+                    <p style={{ margin: 0, opacity: 0.8, fontSize: '10pt' }}>
+                        {step1.projectName || 'Unnamed Project'} • {step1.client || 'No Client'}
+                    </p>
+                    <div style={styles.summaryGrid}>
+                        <div style={styles.summaryItem}>
+                            <div style={styles.summaryValue}>{zones.length}</div>
+                            <div style={styles.summaryLabel}>Zones</div>
+                        </div>
+                        <div style={styles.summaryItem}>
+                            <div style={styles.summaryValue}>{totalFloors}</div>
+                            <div style={styles.summaryLabel}>Floors</div>
+                        </div>
+                        <div style={styles.summaryItem}>
+                            <div style={styles.summaryValue}>{totalArea.toLocaleString()}</div>
+                            <div style={styles.summaryLabel}>GFA (m²)</div>
+                        </div>
+                        <div style={styles.summaryItem}>
+                            <div style={styles.summaryValue}>{totalEquipment}</div>
+                            <div style={styles.summaryLabel}>Equipment</div>
+                        </div>
+                        <div style={styles.summaryItem}>
+                            <div style={styles.summaryValue}>{schedules.length}</div>
+                            <div style={styles.summaryLabel}>Schedules</div>
+                        </div>
+                        <div style={styles.summaryItem}>
+                            <div style={styles.summaryValue}>{bills.length + (step5.billFiles?.length || 0)}</div>
+                            <div style={styles.summaryLabel}>Bill Records</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style={styles.formCard}>
+                    <h3 style={styles.sectionTitle}>
+                        <Icons.Building /> Building Identification
+                    </h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10pt' }}>
+                        <tbody>
+                            {[
+                                ['Project ID', step1.projectId],
+                                ['Building Name', step1.buildingName],
+                                ['Client', step1.client],
+                                ['Location', `${step1.city}, ${step1.region}`],
+                                ['Building Type', step1.buildingType],
+                                ['Thermal Source', step1.thermalSource]
+                            ].map(([label, value]) => (
+                                <tr key={label}>
+                                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0', fontWeight: '500', width: '40%' }}>{label}</td>
+                                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0', color: value ? '#2d3748' : '#a0aec0' }}>{value || '—'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {zones.length > 0 && zones[0].name && (
+                    <div style={styles.formCard}>
+                        <h3 style={styles.sectionTitle}>
+                            <Icons.Layout /> Zones Configuration
+                        </h3>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10pt' }}>
+                            <thead>
+                                <tr style={{ background: '#f7fafc' }}>
+                                    <th style={{ padding: '10px 12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Zone</th>
+                                    <th style={{ padding: '10px 12px', textAlign: 'center', borderBottom: '2px solid #e2e8f0' }}>Floors</th>
+                                    <th style={{ padding: '10px 12px', textAlign: 'right', borderBottom: '2px solid #e2e8f0' }}>Area (m²)</th>
+                                    <th style={{ padding: '10px 12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Use Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {zones.map((zone, i) => (
+                                    <tr key={i}>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0' }}>{zone.name}</td>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{zone.floors}</td>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>{parseInt(zone.area).toLocaleString()}</td>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0' }}>{zone.useType}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {equipment.length > 0 && equipment[0].type && (
+                    <div style={styles.formCard}>
+                        <h3 style={styles.sectionTitle}>
+                            <Icons.Settings /> Equipment Summary
+                        </h3>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10pt' }}>
+                            <thead>
+                                <tr style={{ background: '#f7fafc' }}>
+                                    <th style={{ padding: '10px 12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Type</th>
+                                    <th style={{ padding: '10px 12px', textAlign: 'center', borderBottom: '2px solid #e2e8f0' }}>Qty</th>
+                                    <th style={{ padding: '10px 12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Capacity</th>
+                                    <th style={{ padding: '10px 12px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Brand/Model</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {equipment.filter(e => e.type).map((item, i) => (
+                                    <tr key={i}>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0' }}>{item.type}</td>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>{item.count}</td>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0' }}>{item.capacity || '—'}</td>
+                                        <td style={{ padding: '8px 12px', borderBottom: '1px solid #e2e8f0' }}>{item.brand} {item.model}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                <div style={styles.note}>
+                    <strong>Ready to Submit:</strong> Review the information above. Click "Submit Health Check Data" to generate the analysis report.
+                </div>
+            </div>
+        );
+    };
+
+    // ============================================
+    // MAIN APP COMPONENT
+    // ============================================
+    const HealthCheckApp = () => {
+        const [currentStep, setCurrentStep] = useState(1);
+        const [formData, setFormData] = useState({
+            step1: {},
+            step2: { zones: [{ id: 1 }] },
+            step3: { schedules: [{ id: 1 }] },
+            step4: { equipment: [{ id: 1 }], assetFiles: [] },
+            step5: { bills: [{ id: 1 }], billFiles: [] }
+        });
+        const [showReview, setShowReview] = useState(false);
+
+        const updateStepData = (step, data) => {
+            setFormData(prev => ({
+                ...prev,
+                [`step${step}`]: data
+            }));
+        };
+
+        const nextStep = () => {
+            if (currentStep < 5) {
+                setCurrentStep(currentStep + 1);
+            } else {
+                setShowReview(true);
+            }
+        };
+
+        const prevStep = () => {
+            if (showReview) {
+                setShowReview(false);
+            } else if (currentStep > 1) {
+                setCurrentStep(currentStep - 1);
+            }
+        };
+
+        const handleSubmit = () => {
+            // Generate JSON output
+            const output = JSON.stringify(formData, null, 2);
+            const blob = new Blob([output], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `health-check-data-${formData.step1.projectId || 'draft'}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('Health Check data exported successfully!');
+        };
+
+        const renderStepContent = () => {
+            if (showReview) {
+                return <ReviewSummary formData={formData} />;
+            }
+
+            switch (currentStep) {
+                case 1:
+                    return <Step1BuildingIdentification data={formData.step1} onChange={d => updateStepData(1, d)} />;
+                case 2:
+                    return <Step2BuildingConfiguration data={formData.step2} onChange={d => updateStepData(2, d)} />;
+                case 3:
+                    return <Step3OperatingSchedules data={formData.step3} onChange={d => updateStepData(3, d)} />;
+                case 4:
+                    return <Step4EquipmentLists data={formData.step4} onChange={d => updateStepData(4, d)} />;
+                case 5:
+                    return <Step5UtilityBills data={formData.step5} onChange={d => updateStepData(5, d)} />;
+                default:
+                    return null;
+            }
+        };
+
+        return (
+            <div style={styles.container}>
+                {/* Header */}
+                <div style={styles.header}>
+                    <div style={styles.logoBox}>
+                        <svg width="70" height="70" viewBox="0 0 201 201" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M196.31 73.1367C141.855 82.1308 130.017 62.3914 124.861 52.0524C124.469 51.2818 124.133 50.5675 123.796 49.909C123.25 48.8022 122.676 47.7095 122.115 46.6447C122.023 47.0647 122.023 47.4997 122.115 47.9197C121.795 47.8346 121.466 47.7922 121.134 47.7936C120.714 47.7926 120.297 47.8635 119.902 48.0038C119.902 47.1305 119.555 46.2931 118.937 45.6758C118.32 45.0582 117.483 44.7113 116.609 44.7113C115.736 44.7113 114.899 45.0582 114.281 45.6758C113.664 46.2931 113.317 47.1305 113.317 48.0038C113.317 48.4575 113.412 48.9063 113.597 49.3206C113.252 49.2184 112.893 49.1664 112.533 49.1664C112.016 49.1664 111.505 49.2762 111.034 49.4887C111.034 49.3766 111.034 49.2785 111.034 49.1664C111.024 48.2294 110.664 47.33 110.025 46.6447C110.454 46.8832 110.935 47.013 111.426 47.023C112.138 47.0303 112.831 46.793 113.389 46.3511C113.946 45.9091 114.336 45.289 114.492 44.5945C114.648 43.8999 114.561 43.1728 114.245 42.5348C113.93 41.8966 113.405 41.3859 112.759 41.0882C112.112 40.7904 111.383 40.7234 110.693 40.8984C110.003 41.0734 109.394 41.4798 108.967 42.0496C108.541 42.6197 108.323 43.3187 108.35 44.03C108.376 44.7414 108.646 45.422 109.114 45.9582C108.584 45.6583 107.987 45.4945 107.377 45.4819C106.992 45.4856 106.609 45.5469 106.242 45.664C107.221 47.9495 107.736 50.4068 107.755 52.8931C107.755 57.236 105.556 60.6403 102.152 63.6804L101.465 64.2686C97.7401 67.1146 93.4361 69.1089 88.8567 70.1106C88.9255 70.44 89.0337 70.7598 89.1788 71.0632H88.7726C88.2295 71.0707 87.6943 71.1948 87.2034 71.4276C87.2863 71.1259 87.3335 70.8156 87.3437 70.5029C84.9479 71.0354 82.5524 71.4416 80.3389 71.7918C80.4901 72.1553 80.693 72.495 80.9413 72.8004C80.5748 72.6596 80.1851 72.5883 79.7924 72.5904C79.0215 72.5926 78.2747 72.8595 77.677 73.3468C77.8312 72.9495 77.9072 72.5262 77.9013 72.1C76.3462 72.3382 74.8471 72.5763 73.4742 72.8566L71.4428 73.2767C71.518 73.4339 71.607 73.5839 71.7089 73.7251C71.3595 73.5943 70.9894 73.5279 70.6162 73.5289C69.9949 73.5289 69.3878 73.7134 68.8714 74.0589C68.355 74.4044 67.9528 74.8952 67.7157 75.4694C67.4786 76.0437 67.4173 76.6754 67.5395 77.2845C67.6617 77.8936 67.962 78.4528 68.4024 78.891C68.8425 79.3294 69.4029 79.6272 70.0126 79.7466C70.6223 79.8661 71.2538 79.802 71.827 79.5624C72.4001 79.3226 72.8892 78.9183 73.2324 78.4004C73.5755 77.8824 73.7572 77.2743 73.7545 76.653C73.7499 76.0433 73.5647 75.4484 73.222 74.9439C73.6272 75.1081 74.0599 75.1936 74.4969 75.1961C75.2797 75.1989 76.0384 74.9261 76.6403 74.4256C76.4079 74.886 76.2879 75.3949 76.2901 75.9105C76.2944 76.5467 76.479 77.1684 76.8226 77.7039C76.4307 77.5457 76.0121 77.4648 75.5896 77.4656C74.6916 77.4693 73.8314 77.8278 73.1964 78.4626C72.5614 79.0977 72.2031 79.958 72.1994 80.856C72.2057 81.5413 72.4153 82.2092 72.8018 82.7753C72.3934 82.5871 71.9486 82.4914 71.4989 82.495C70.7891 82.4946 70.0996 82.7315 69.5402 83.1681C68.9808 83.6048 68.5835 84.216 68.4114 84.9047C68.2393 85.5931 68.3028 86.3195 68.5911 86.9679C68.8797 87.6163 69.3768 88.1496 70.0034 88.4829C70.63 88.8162 71.3501 88.9303 72.0489 88.8072C72.7478 88.6838 73.3854 88.3305 73.8603 87.8029C74.3351 87.2755 74.6199 86.6043 74.6692 85.8964C74.7187 85.1883 74.5297 84.4843 74.1326 83.896C74.5694 84.1094 75.0477 84.2241 75.5336 84.2323C76.016 84.2333 76.4934 84.1331 76.9345 83.9381C76.8774 84.1862 76.8493 84.4399 76.8504 84.6945C76.8575 85.4144 77.0767 86.1162 77.481 86.7119C77.2191 86.6501 76.9514 86.6173 76.6823 86.6139C75.9815 86.6279 75.3017 86.8555 74.7334 87.2659C74.1652 87.6764 73.7358 88.2505 73.5022 88.9115C79.2279 87.7316 85.0562 87.1215 90.902 87.0903L91.1401 87.0062C91.1336 87.0337 91.1336 87.0626 91.1401 87.0903C94.4865 87.0655 97.8094 87.6495 100.947 88.8133C102.18 89.3304 103.346 89.9936 104.421 90.7887C106.883 92.6553 108.815 95.1327 110.025 97.9755C111.094 100.463 111.824 103.083 112.196 105.765C112.403 105.726 112.605 105.664 112.799 105.583C112.837 105.871 112.912 106.154 113.023 106.423C112.79 106.402 112.556 106.402 112.323 106.423C112.652 108.918 112.821 111.43 112.827 113.946C113.231 113.903 113.624 113.789 113.99 113.61C113.975 113.801 113.975 113.993 113.99 114.185C113.991 114.722 114.11 115.253 114.34 115.74C114.087 115.683 113.829 115.655 113.569 115.656C113.336 115.634 113.102 115.634 112.869 115.656C112.869 118.037 112.715 120.377 112.561 122.576C112.888 122.673 113.228 122.72 113.569 122.716C114.273 122.719 114.962 122.509 115.545 122.114C115.414 122.473 115.347 122.853 115.349 123.235C115.356 124.106 115.705 124.939 116.321 125.554C116.937 126.17 117.77 126.52 118.641 126.527C119.385 126.531 120.107 126.278 120.686 125.812C120.568 126.146 120.506 126.496 120.504 126.849C120.5 127.356 120.616 127.856 120.843 128.309C121.07 128.762 121.402 129.154 121.811 129.454C122.219 129.753 122.694 129.951 123.194 130.031C123.694 130.111 124.206 130.071 124.688 129.914C125.17 129.757 125.608 129.487 125.964 129.128C126.322 128.768 126.588 128.329 126.742 127.846C126.895 127.363 126.932 126.851 126.849 126.351C126.765 125.851 126.564 125.378 126.262 124.972C126.634 125.13 127.035 125.211 127.439 125.21C127.743 125.207 128.045 125.16 128.335 125.07C129.05 119.928 129.484 114.759 130.325 109.659C130.859 105.835 131.798 102.078 133.127 98.4519C133.662 97.1272 134.304 95.8481 135.046 94.6273C137.946 89.9621 142.457 87.9168 147.865 87.8748C151.827 87.8748 155.745 88.7052 159.367 90.3123C161.166 91.077 162.872 92.0454 164.452 93.1984C165.723 94.1997 166.918 95.2956 168.024 96.4766C168.122 97.8775 168.164 99.4045 168.164 100.889C168.18 118.605 161.295 135.629 148.969 148.353C136.643 161.077 119.845 168.499 102.139 169.046C84.4319 169.592 67.2085 163.22 54.1211 151.281C41.0336 139.342 33.1113 122.775 32.0341 105.092C32.1567 105.092 32.2744 105.044 32.361 104.957C32.4476 104.87 32.4963 104.753 32.4963 104.63C32.4963 104.508 32.4476 104.39 32.361 104.303C32.2744 104.216 32.1567 104.168 32.0341 104.168C32.0341 103.103 31.964 102.024 31.964 100.931C31.9567 91.9849 33.7116 83.1243 37.1285 74.8557C40.5455 66.5872 45.5576 59.0727 51.8788 52.7412C58.1998 46.4098 65.7061 41.3853 73.9689 37.9546C82.2318 34.5241 91.0894 32.7546 100.036 32.7473C102.969 32.7424 105.898 32.9296 108.806 33.3077C108.631 33.4593 108.491 33.6463 108.394 33.8565C108.298 34.0669 108.247 34.2951 108.246 34.5265C108.239 34.7854 108.293 35.0423 108.404 35.2766C108.514 35.5108 108.678 35.7156 108.882 35.8747C109.087 36.034 109.326 36.1429 109.58 36.1927C109.834 36.2426 110.096 36.2322 110.346 36.1621C110.595 36.092 110.824 35.9643 111.015 35.7893C111.206 35.6143 111.353 35.3968 111.445 35.1545C111.536 34.9123 111.57 34.6518 111.542 34.3943C111.514 34.1368 111.427 33.8893 111.286 33.6719C120.724 35.2401 129.724 38.7875 137.694 44.081L158.05 19.2001C138.787 5.54039 115.313 -0.861967 91.7824 1.1266C68.2523 3.11517 46.1849 13.3666 29.4885 30.0654C12.7919 46.7643 2.54354 68.8329 0.558092 92.3634C-1.42734 115.894 4.97832 139.368 18.6407 158.628C32.303 177.888 52.3406 191.693 75.2048 197.595C98.0691 203.5 122.285 201.121 143.564 190.882C164.842 180.642 181.811 163.204 191.465 141.653C201.119 120.103 202.835 95.8312 196.31 73.1367ZM80.4929 81.1361C79.9478 81.1399 79.4108 81.2693 78.9239 81.5144C78.9384 81.3092 78.9384 81.1031 78.9239 80.8981C78.9343 80.2678 78.7693 79.6469 78.4475 79.1047C78.8702 79.2658 79.3208 79.3412 79.7728 79.3267C80.225 79.3124 80.6697 79.2082 81.0814 79.0207C81.0598 79.2208 81.0598 79.4229 81.0814 79.6231C81.0794 80.1992 81.2189 80.7669 81.4876 81.2762C81.1633 81.1878 80.8292 81.1408 80.4929 81.1361ZM82.3002 73.8652C82.7199 74.0294 83.1664 74.1148 83.6172 74.1174C84.1338 74.115 84.6442 74.0052 85.1161 73.7951C85.0255 74.1239 84.9784 74.4629 84.976 74.8039C84.9772 75.2042 85.0436 75.6016 85.172 75.9807H84.6818C84.0951 75.9783 83.5172 76.1229 83.0006 76.401C83.0006 76.2608 83.0006 76.1207 83.0006 75.9807C83.0134 75.2166 82.7663 74.4708 82.3002 73.8652ZM85.7886 85.0728C85.1659 85.0748 84.5541 85.2337 84.0094 85.5352C84.0705 85.2637 84.1033 84.9868 84.1074 84.7086C84.1053 84.1481 83.9709 83.5961 83.7152 83.0974C84.0297 83.1872 84.3547 83.2343 84.6818 83.2376C85.1218 83.2315 85.5576 83.151 85.9707 82.9994C85.9561 83.1766 85.9561 83.3545 85.9707 83.5317C85.9748 84.0752 86.0993 84.611 86.3348 85.1009L85.7886 85.0728ZM89.6691 79.7912C89.1894 79.7889 88.7137 79.8792 88.2682 80.0574C88.2822 79.8944 88.2822 79.7301 88.2682 79.5671C88.2635 79.1912 88.202 78.818 88.0861 78.4603C88.268 78.474 88.4507 78.474 88.6324 78.4603C89.0329 78.4615 89.4308 78.3951 89.8093 78.2643V78.4603C89.8131 78.9038 89.8889 79.3438 90.0335 79.7631L89.6691 79.7912ZM92.1489 73.2628H92.6952C92.9827 73.2586 93.2689 73.2258 93.5498 73.1648C93.5581 73.6434 93.6482 74.1172 93.816 74.5656C93.3361 74.5615 92.86 74.6521 92.4151 74.8318C92.431 74.3101 92.3404 73.7904 92.1489 73.3048V73.2628ZM93.3956 83.91C93.4027 83.7841 93.4027 83.6578 93.3956 83.5317C93.3923 83.1602 93.3308 82.7916 93.2135 82.439C93.4235 82.4535 93.6341 82.4535 93.844 82.439C94.0699 82.4372 94.295 82.4138 94.5164 82.3691C94.5443 82.7517 94.6244 83.1288 94.7547 83.4896C94.2785 83.5647 93.8189 83.7212 93.3956 83.952V83.91ZM96.6739 69.2982C96.6603 69.0051 96.6181 68.7142 96.5478 68.4294H96.6739C96.9563 68.4306 97.238 68.4025 97.5146 68.3456V68.4294C97.514 68.684 97.5423 68.9378 97.5986 69.186H97.5146C97.2313 69.1957 96.9497 69.2332 96.6739 69.2982ZM97.8228 78.2362C97.789 77.8651 97.6992 77.5015 97.5566 77.1574C97.9123 77.1562 98.2661 77.1044 98.6073 77.0034C98.6249 77.3998 98.7006 77.7915 98.8314 78.166H98.6493C98.3739 78.1436 98.0972 78.1484 97.8228 78.1802V78.2362ZM99.6019 87.2022C99.389 87.2356 99.1785 87.2824 98.9714 87.3423C98.9577 87.0188 98.9011 86.6984 98.8033 86.3896C99.0775 86.3808 99.3497 86.3433 99.6159 86.2777C99.6015 86.4641 99.6015 86.6514 99.6159 86.838C99.6059 86.9404 99.6012 87.0433 99.6019 87.1462V87.2022ZM115.377 101.52C115.345 101.185 115.27 100.855 115.152 100.539C115.477 100.511 115.796 100.445 116.105 100.343C116.118 100.685 116.174 101.024 116.273 101.352C115.97 101.379 115.669 101.436 115.377 101.52ZM116.035 110.85C116.049 110.64 116.049 110.43 116.035 110.22C116.034 109.74 115.943 109.265 115.769 108.819C116.375 108.941 117.003 108.902 117.59 108.707C117.59 108.819 117.59 108.917 117.59 109.029C117.603 109.511 117.707 109.987 117.898 110.43H117.562C117.033 110.443 116.513 110.567 116.035 110.794V110.85ZM118.557 120.012C117.929 120.017 117.317 120.201 116.792 120.545C116.964 120.132 117.055 119.69 117.058 119.242C117.052 118.757 116.942 118.28 116.736 117.841C117.019 117.914 117.311 117.951 117.604 117.953C118.086 117.948 118.562 117.848 119.005 117.659C118.991 117.831 118.991 118.005 119.005 118.177C119.012 118.925 119.257 119.652 119.705 120.251C119.342 120.09 118.953 119.991 118.557 119.956V120.012ZM125.057 99.2505C125.057 99.2505 125.057 99.3485 125.057 99.4045C125.05 99.5259 125.05 99.6475 125.057 99.7689C124.855 99.7822 124.653 99.8103 124.455 99.8527C124.469 99.6944 124.469 99.5349 124.455 99.3766C124.662 99.3413 124.865 99.2802 125.057 99.1943V99.2505ZM120.28 105.443C120.28 105.331 120.28 105.233 120.28 105.12C120.275 104.851 120.242 104.584 120.182 104.322H120.28C120.615 104.316 120.949 104.274 121.275 104.196C121.314 104.557 121.403 104.911 121.541 105.246H121.401C121.022 105.238 120.645 105.285 120.28 105.387V105.443ZM121.036 112.728H121.415C121.926 112.729 122.431 112.624 122.9 112.419C122.885 112.606 122.885 112.793 122.9 112.98C122.905 113.538 123.034 114.088 123.278 114.591C123.044 114.534 122.804 114.506 122.563 114.507C122.131 114.512 121.704 114.598 121.303 114.759C121.317 114.544 121.317 114.329 121.303 114.115C121.306 113.639 121.215 113.168 121.036 112.728ZM123.572 123.683C122.86 123.688 122.17 123.929 121.611 124.369C121.751 124.017 121.822 123.642 121.821 123.263C121.817 122.586 121.607 121.926 121.219 121.371C121.62 121.531 122.048 121.612 122.479 121.61C123.119 121.622 123.749 121.457 124.301 121.133C124.211 121.433 124.164 121.745 124.161 122.058C124.168 122.734 124.389 123.391 124.791 123.935C124.407 123.767 123.992 123.681 123.572 123.683ZM124.973 107.796H125.309C125.748 107.8 126.184 107.728 126.598 107.586C126.591 107.693 126.591 107.801 126.598 107.908C126.596 108.389 126.691 108.866 126.878 109.309H126.598C126.115 109.317 125.639 109.422 125.197 109.617C125.211 109.417 125.211 109.216 125.197 109.015C125.191 108.599 125.115 108.187 124.973 107.796ZM127.341 118.85C126.816 118.85 126.3 118.985 125.842 119.242C125.969 118.868 126.035 118.475 126.038 118.079C126.032 117.594 125.922 117.117 125.716 116.678C125.996 116.739 126.283 116.772 126.57 116.776C127.081 116.777 127.587 116.672 128.055 116.468C127.999 116.697 127.971 116.933 127.971 117.169C127.974 117.918 128.242 118.643 128.728 119.214C128.302 118.993 127.834 118.868 127.355 118.85H127.341ZM129.344 104.322C129.359 104.145 129.359 103.967 129.344 103.789C129.351 103.673 129.351 103.556 129.344 103.439C129.628 103.422 129.91 103.375 130.185 103.299C130.202 103.598 130.254 103.894 130.339 104.182C130.003 104.189 129.669 104.235 129.344 104.322Z" fill="#1a365d"/>
+                            <path d="M116.189 36.5436C115.84 36.3562 115.45 36.26 115.054 36.2635C114.575 36.2635 114.106 36.4055 113.708 36.6719C113.309 36.9382 112.999 37.3167 112.815 37.7597C112.632 38.2024 112.584 38.6897 112.677 39.16C112.771 39.63 113.002 40.0619 113.341 40.4009C113.679 40.7398 114.111 40.9706 114.581 41.0641C115.052 41.1578 115.539 41.1096 115.982 40.9262C116.425 40.7427 116.803 40.4322 117.069 40.0336C117.336 39.6351 117.478 39.1664 117.478 38.6872V38.589L116.189 36.5436Z" fill="#1a365d"/>
+                            <path d="M120.168 45.5801C120.59 45.5769 121.006 45.4813 121.387 45.2998C120.42 43.5347 119.467 41.8815 118.585 40.3826C118.203 40.6338 117.889 40.9744 117.669 41.3749C117.449 41.7752 117.331 42.2234 117.324 42.6801C117.311 43.0598 117.375 43.4381 117.512 43.7924C117.649 44.1466 117.858 44.4691 118.124 44.7404C118.389 45.0116 118.708 45.2259 119.059 45.3703C119.411 45.5147 119.788 45.586 120.168 45.5801Z" fill="#1a365d"/>
+                            <path d="M127.775 128.446C127.168 128.671 126.645 129.076 126.274 129.607C125.904 130.138 125.704 130.769 125.702 131.416C125.706 131.851 125.798 132.282 125.971 132.681C126.144 133.08 126.396 133.441 126.71 133.742C127.089 132.005 127.425 130.225 127.775 128.446Z" fill="#1a365d"/>
+                            <path d="M35.06 99.5163C35.06 99.7387 35.1262 99.9559 35.2499 100.141C35.3737 100.325 35.5495 100.469 35.7551 100.553C35.9608 100.637 36.1869 100.659 36.4047 100.615C36.6223 100.57 36.8221 100.462 36.9782 100.304C37.1344 100.146 37.2401 99.9447 37.2817 99.7263C37.3234 99.5081 37.2992 99.2822 37.2122 99.0777C37.1252 98.8732 36.9794 98.699 36.7932 98.5776C36.607 98.4562 36.389 98.3928 36.1668 98.3955C35.872 98.3993 35.5905 98.5191 35.3833 98.7289C35.1761 98.9386 35.06 99.2215 35.06 99.5163Z" fill="#1a365d"/>
+                            <path d="M63.5695 75.308C64.0436 75.6327 64.606 75.804 65.1805 75.7983C65.7246 75.7956 66.2571 75.6406 66.7175 75.3509C67.1781 75.0613 67.5484 74.6485 67.7864 74.1592C66.3154 74.5235 64.9144 74.9017 63.5695 75.308Z" fill="#1a365d"/>
+                            <path d="M105.948 37.2021C105.262 37.2058 104.605 37.48 104.12 37.9654C103.635 38.4505 103.36 39.1078 103.357 39.7939C103.35 39.8732 103.35 39.9528 103.357 40.0321C103.735 40.6624 104.099 41.293 104.435 41.8954C104.869 42.2167 105.395 42.3888 105.934 42.3857C106.622 42.3857 107.281 42.1126 107.767 41.6265C108.253 41.1405 108.526 40.4813 108.526 39.7939C108.526 39.1066 108.253 38.4474 107.767 37.9613C107.281 37.4753 106.622 37.2021 105.934 37.2021H105.948Z" fill="#1a365d"/>
+                            <path d="M99.6719 34.6106C100.358 35.5212 101.073 36.4178 101.591 37.2725C101.911 37.0937 102.162 36.8136 102.306 36.4766C102.449 36.1393 102.477 35.7642 102.384 35.4098C102.291 35.0555 102.083 34.742 101.792 34.5186C101.502 34.2955 101.145 34.1749 100.779 34.1763C100.37 34.1839 99.9771 34.3381 99.6719 34.6106Z" fill="#1a365d"/>
+                        </svg>
+                    </div>
+                    <div style={styles.headerContent}>
+                        <span style={styles.badge}>HEALTH CHECK DATA COLLECTION</span>
+                        <h1 style={styles.title}>Gaiamesh Building Energy Health Check</h1>
+                        <p style={styles.subtitle}>Structured data input for Health Check analysis and reporting</p>
+                    </div>
+                </div>
+
+                {/* Progress Steps */}
+                <div style={styles.progressContainer}>
+                    <div style={styles.stepsRow}>
+                        {STEPS.map((step, index) => {
+                            const isActive = !showReview && currentStep === step.id;
+                            const isCompleted = showReview || currentStep > step.id;
+                            const IconComponent = step.icon;
+
+                            return (
+                                <div 
+                                    key={step.id} 
+                                    style={styles.stepItem(isActive, isCompleted)}
+                                    onClick={() => {
+                                        if (!showReview && step.id <= currentStep) {
+                                            setCurrentStep(step.id);
+                                        }
+                                    }}
+                                >
+                                    {index < STEPS.length - 1 && (
+                                        <div style={styles.stepConnector(isCompleted)} />
+                                    )}
+                                    <div style={styles.stepCircle(isActive, isCompleted)}>
+                                        {isCompleted && !isActive ? <Icons.Check /> : <IconComponent />}
+                                    </div>
+                                    <span style={styles.stepLabel(isActive, isCompleted)}>
+                                        {step.title}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Form Content */}
+                <div style={styles.formCard}>
+                    {!showReview && (
+                        <div style={{ marginBottom: '24px' }}>
+                            <h2 style={{ color: '#1a365d', margin: '0 0 8px 0', fontSize: '16pt' }}>
+                                {showReview ? 'Review & Submit' : STEPS[currentStep - 1].title}
+                            </h2>
+                            <p style={{ color: '#718096', margin: 0, fontSize: '10pt' }}>
+                                {showReview ? 'Review all entered data before submission' : STEPS[currentStep - 1].description}
+                            </p>
+                        </div>
+                    )}
+
+                    {renderStepContent()}
+
+                    <div style={styles.buttonRow}>
+                        <button 
+                            style={{
+                                ...styles.button, 
+                                ...styles.secondaryButton,
+                                opacity: currentStep === 1 && !showReview ? 0.5 : 1,
+                                cursor: currentStep === 1 && !showReview ? 'not-allowed' : 'pointer'
+                            }}
+                            onClick={prevStep}
+                            disabled={currentStep === 1 && !showReview}
+                        >
+                            <Icons.ChevronLeft /> Back
+                        </button>
+                        
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            {showReview ? (
+                                <>
+                                    <button 
+                                        style={{...styles.button, ...styles.secondaryButton}}
+                                        onClick={() => setShowReview(false)}
+                                    >
+                                        Edit Data
+                                    </button>
+                                    <button 
+                                        style={{...styles.button, ...styles.successButton}}
+                                        onClick={handleSubmit}
+                                    >
+                                        <Icons.Download /> Export JSON
+                                    </button>
+                                </>
+                            ) : (
+                                <button 
+                                    style={{...styles.button, ...styles.primaryButton}}
+                                    onClick={nextStep}
+                                >
+                                    {currentStep === 5 ? 'Review Data' : 'Continue'} <Icons.ChevronRight />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div style={{ textAlign: 'center', color: '#718096', fontSize: '9pt', marginTop: '20px' }}>
+                    Gaiamesh™ Health Check Data Collection System • v1.0 • {new Date().toLocaleDateString()}
+                </div>
+            </div>
+        );
+    };
+
+    // Render the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<HealthCheckApp />);
+    </script>
+</body>
+</html>
