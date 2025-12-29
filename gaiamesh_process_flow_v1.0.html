@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gaiamesh Process Flow v1.0</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --secondary: #64748b;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --path-a: #f59e0b;
+      --path-b: #22c55e;
+      --path-c: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .app-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header-version {
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      margin-left: 0.5rem;
+    }
+
+    /* Document Tabs */
+    .doc-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .doc-tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .doc-tab.d-series {
+      background: rgba(37, 99, 235, 0.2);
+      color: #93c5fd;
+    }
+
+    .doc-tab.c-series {
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+    }
+
+    .doc-tab:hover {
+      transform: translateY(-1px);
+    }
+
+    .doc-tab.active {
+      background: white;
+      color: var(--text);
+    }
+
+    /* Path Filter */
+    .path-filter {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 2rem;
+      background: white;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .path-filter-label {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .path-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .path-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .path-btn.path-a { border-color: var(--path-a); }
+    .path-btn.path-b { border-color: var(--path-b); }
+    .path-btn.path-c { border-color: var(--path-c); }
+
+    .path-btn.active.path-a { background: var(--path-a); color: white; }
+    .path-btn.active.path-b { background: var(--path-b); color: white; }
+    .path-btn.active.path-c { background: var(--path-c); color: white; }
+
+    .path-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Flow Section */
+    .flow-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .flow-section h2 {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Flow Diagram */
+    .flow-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-arrow {
+      color: var(--secondary);
+      font-size: 1.25rem;
+    }
+
+    .flow-branch {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+      margin: 0.5rem 0;
+    }
+
+    .flow-branch-path {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .flow-branch-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      color: white;
+    }
+
+    .flow-branch-label.path-a { background: var(--path-a); }
+    .flow-branch-label.path-b { background: var(--path-b); }
+    .flow-branch-label.path-c { background: var(--path-c); }
+
+    /* Stage Node */
+    .stage-node {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .stage-node:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .stage-node.active {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .stage-node.dimmed {
+      opacity: 0.4;
+    }
+
+    .stage-node .stage-id {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .stage-node .stage-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
+    }
+
+    .stage-node.html-output {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-color: var(--primary);
+    }
+
+    .stage-node.client-facing {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-color: var(--success);
+    }
+
+    /* Stage Detail Panel */
+    .stage-detail {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .stage-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stage-detail-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .stage-detail-id {
+      background: var(--primary);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .stage-detail-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .stage-detail-path {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .path-badge {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .path-badge.path-a { background: var(--path-a); }
+    .path-badge.path-b { background: var(--path-b); }
+    .path-badge.path-c { background: var(--path-c); }
+
+    .stage-detail-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .detail-section h4 {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .detail-section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .detail-section li {
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: #f8fafc;
+      border-radius: 6px;
+    }
+
+    .file-icon {
+      font-size: 1rem;
+    }
+
+    .file-name {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+
+    .file-path {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* Document Hierarchy */
+    .doc-hierarchy {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .doc-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .doc-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .doc-card.d-series {
+      border-left: 4px solid var(--primary);
+    }
+
+    .doc-card.c-series {
+      border-left: 4px solid var(--success);
+    }
+
+    .doc-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .doc-card-code {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .doc-card.d-series .doc-card-code { color: var(--primary); }
+    .doc-card.c-series .doc-card-code { color: var(--success); }
+
+    .doc-card-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .doc-card-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .doc-card-source {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Appendix Sections */
+    .appendix-section {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .appendix-header {
+      padding: 1rem 1.5rem;
+      background: #f8fafc;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .appendix-header:hover {
+      background: #f1f5f9;
+    }
+
+    .appendix-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .appendix-toggle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+
+    .appendix-toggle.open {
+      transform: rotate(180deg);
+    }
+
+    .appendix-content {
+      padding: 1.5rem;
+      display: none;
+    }
+
+    .appendix-content.open {
+      display: block;
+    }
+
+    .appendix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .appendix-table th,
+    .appendix-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .appendix-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .appendix-table code {
+      background: #f1f5f9;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    /* Legend Bar */
+    .legend-bar {
+      background: #1e293b;
+      color: white;
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .legend-icon {
+      font-size: 1rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 2rem;
+      margin: 1rem;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .section-outline {
+      margin-top: 1rem;
+    }
+
+    .section-outline h4 {
+      font-size: 0.9rem;
+      color: var(--primary);
+      margin: 1rem 0 0.5rem;
+    }
+
+    .section-outline ul {
+      list-style: none;
+      padding-left: 1rem;
+    }
+
+    .section-outline li {
+      font-size: 0.85rem;
+      padding: 0.25rem 0;
+      color: var(--text-muted);
+    }
+
+    .section-outline li::before {
+      content: "•";
+      color: var(--primary);
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Data
+    const stages = [
+      { id: 'D1_0', name: 'Sales Intake', paths: ['A', 'B', 'C'], methodology: 'TBD', 
+        inputs: [{ icon: '🪶', name: 'Feishu Project Initiation Form' }],
+        outputs: [{ icon: '📩', name: 'Email to Solutions Team' }, { icon: '🟦', name: 'SharePoint folder', path: '/[project-id]/' }]
+      },
+      { id: 'D1_1', name: 'Pre-Population', paths: ['A', 'B', 'C'], methodology: 'D1_1_prepopulation_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_D1_Analysis_Basis' }, { icon: '📎', name: 'Project Initiation Form' }, { icon: '🟢', name: 'D1_project_design_basis_template.html' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_dim_space.csv' }, { icon: '🔴', name: '[PROJECT]_dim_meter.csv' }],
+        sections: 'A, B'
+      },
+      { id: 'D1_2A', name: 'Utility Bill Ingestion', paths: ['A'], methodology: 'D1_2A_utility_bill_ingestion_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_[type]_bill_ingestion' }, { icon: '📎', name: 'Client Utility Bills', path: '/in_utility/[type]' }, { icon: '🟢', name: 'fact_weather_hourly_[STATION].csv' }],
+        outputs: [{ icon: '🟦', name: 'fact_meter_monthly_[PROJECT].csv', path: '/out_analysis' }, { icon: '🟣', name: 'fact_energy_model_[PROJECT].csv', path: '→ Project' }],
+        note: 'Higher uncertainty (monthly)'
+      },
+      { id: 'D1_2B', name: 'Submetered Ingestion', paths: ['B', 'C'], methodology: 'D1_2B_submeter_ingestion_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_submeter_ingestion' }, { icon: '📎', name: 'BMS/Submeter exports', path: '/in_operating' }, { icon: '🟢', name: 'fact_weather_hourly_[STATION].csv' }],
+        outputs: [{ icon: '🟦', name: 'fact_meter_daily_[PROJECT].csv', path: '/out_analysis' }, { icon: '🟦', name: 'fact_meter_hourly_[PROJECT].csv', path: '/out_analysis' }, { icon: '🟣', name: 'fact_energy_model_[PROJECT].csv', path: '→ Project' }],
+        note: 'Lower uncertainty (daily/hourly)'
+      },
+      { id: 'D1_3', name: 'Energy Model', paths: ['A', 'B', 'C'], methodology: 'D1_3_energy_model_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_Energy_Model' }, { icon: '🟢', name: 'fact_energy_model_[PROJECT].csv' }, { icon: '🟢', name: '[PROJECT]_dim_meter.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_energy_model_results.csv' }],
+        sections: 'C'
+      },
+      { id: 'D1_4', name: 'Energy Allocation', paths: ['A', 'B', 'C'], methodology: 'D1_4_energy_allocation_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_Energy_Allocation' }, { icon: '🟢', name: '[PROJECT]_energy_model_results.csv' }, { icon: '🟢', name: '[PROJECT]_dim_space.csv' }, { icon: '🟢', name: 'dim_end_use_category.xlsx' }, { icon: '📎', name: 'hvac_system_inventory.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_energy_allocation_results.csv' }, { icon: '🔴', name: '[PROJECT]_fact_allocation.csv' }],
+        sections: 'D'
+      },
+      { id: 'D1_5', name: 'Space Allocation', paths: ['A', 'B', 'C'], methodology: 'D1_5_space_allocation_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_Space_Allocation' }, { icon: '🟢', name: '[PROJECT]_energy_allocation_results.csv' }, { icon: '🟢', name: '[PROJECT]_fact_allocation.csv' }, { icon: '🟢', name: '[PROJECT]_dim_space.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_fact_space_allocation.csv' }],
+        sections: 'D, Y'
+      },
+      { id: 'D1', name: 'Design Basis', paths: ['A', 'B', 'C'], isHtml: true,
+        inputs: [{ icon: '🟢', name: 'All D1 stage outputs' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_D1_design_basis.html' }, { icon: '🟦', name: '[PROJECT]_D1_design_basis.html', path: '/out_analysis' }]
+      },
+      { id: 'D2_1', name: 'Solutions Analysis', paths: ['A', 'B'], methodology: 'D2_1_solutions_analysis_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_D2_Solutions' }, { icon: '🟢', name: '[PROJECT]_D1_design_basis.html' }, { icon: '🟢', name: '[PROJECT]_fact_allocation.csv' }, { icon: '🟢', name: '[PROJECT]_fact_space_allocation.csv' }, { icon: '🟢', name: 'dim_use_case.xlsx' }, { icon: '🟢', name: 'dim_product.xlsx' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_fact_solution.csv' }, { icon: '🔴', name: '[PROJECT]_fact_bom.csv' }]
+      },
+      { id: 'D2', name: 'Solutions Analysis', paths: ['A', 'B'], isHtml: true,
+        inputs: [{ icon: '🟢', name: '[PROJECT]_D1_design_basis.html' }, { icon: '🟢', name: '[PROJECT]_fact_solution.csv' }, { icon: '🟢', name: '[PROJECT]_fact_bom.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_D2_solutions_analysis.html' }, { icon: '🟦', name: '[PROJECT]_D2_solutions_analysis.html', path: '/out_analysis' }]
+      },
+      { id: 'D3_1', name: 'M&V Analysis', paths: ['C'], methodology: 'D3_1_mv_analysis_methodology.md',
+        inputs: [{ icon: '🔶', name: 'Thread: [project_id]_D3_MV' }, { icon: '🟢', name: '[PROJECT]_D1_design_basis.html' }, { icon: '🟢', name: '[PROJECT]_energy_model_results.csv' }, { icon: '📎', name: 'Post-deployment meter data' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_fact_mv_baseline.csv' }, { icon: '🔴', name: '[PROJECT]_fact_mv_reporting.csv' }]
+      },
+      { id: 'D3', name: 'M&V Analysis', paths: ['C'], isHtml: true,
+        inputs: [{ icon: '🟢', name: '[PROJECT]_D1_design_basis.html' }, { icon: '🟢', name: '[PROJECT]_fact_mv_baseline.csv' }, { icon: '🟢', name: '[PROJECT]_fact_mv_reporting.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_D3_mv_analysis.html' }, { icon: '🟦', name: '[PROJECT]_D3_mv_analysis.html', path: '/out_analysis' }]
+      },
+      { id: 'C1', name: 'Proposal', paths: ['A', 'B'], isClient: true, source: 'D2',
+        inputs: [{ icon: '🟢', name: '[PROJECT]_D2_solutions_analysis.html' }, { icon: '🟢', name: '[PROJECT]_fact_solution.csv' }, { icon: '🟢', name: '[PROJECT]_fact_bom.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_C1_proposal.html' }, { icon: '🟦', name: '[PROJECT]_C1_proposal.pdf', path: '/out_proposals' }]
+      },
+      { id: 'C2', name: 'Health Check Initial', paths: ['A'], isClient: true, source: 'D2',
+        inputs: [{ icon: '🟢', name: '[PROJECT]_D2_solutions_analysis.html' }, { icon: '🟢', name: '[PROJECT]_fact_allocation.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_C2_health_check_initial.html' }, { icon: '🟦', name: '[PROJECT]_C2_health_check_initial.pdf', path: '/out_proposals' }]
+      },
+      { id: 'C3', name: 'M&V Report', paths: ['C'], isClient: true, source: 'D3',
+        inputs: [{ icon: '🟢', name: '[PROJECT]_D3_mv_analysis.html' }, { icon: '🟢', name: '[PROJECT]_fact_mv_reporting.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_C3_mv_report.html' }, { icon: '🟦', name: '[PROJECT]_C3_mv_report.pdf', path: '/out_proposals' }]
+      },
+      { id: 'C4', name: 'Health Check Recurring', paths: ['C'], isClient: true, source: 'D3',
+        inputs: [{ icon: '🟢', name: '[PROJECT]_D3_mv_analysis.html' }, { icon: '🟢', name: '[PROJECT]_fact_mv_reporting.csv' }],
+        outputs: [{ icon: '🔴', name: '[PROJECT]_C4_health_check_recurring.html' }, { icon: '🟦', name: '[PROJECT]_C4_health_check_recurring.pdf', path: '/out_proposals' }]
+      }
+    ];
+
+    const documents = [
+      { code: 'D1', name: 'Design Basis', desc: 'Baseline + allocation foundation', type: 'd-series' },
+      { code: 'D2', name: 'Solutions Analysis', desc: 'ECM identification + ROI', type: 'd-series' },
+      { code: 'D3', name: 'M&V Analysis', desc: 'Measurement & verification', type: 'd-series' },
+      { code: 'C1', name: 'Proposal', desc: 'Investment case', source: 'D2', paths: 'A, B', type: 'c-series' },
+      { code: 'C2', name: 'Health Check Initial', desc: 'Submeter opportunities', source: 'D2', paths: 'A', type: 'c-series' },
+      { code: 'C3', name: 'M&V Report', desc: 'Savings verification', source: 'D3', paths: 'C', type: 'c-series' },
+      { code: 'C4', name: 'Health Check Recurring', desc: 'Performance monitoring', source: 'D3', paths: 'C', type: 'c-series' }
+    ];
+
+    const d1Outline = {
+      'A': { title: 'Building Information', items: ['A1. Building Identification', 'A2. Building Configuration', 'A3. Operating Schedule', 'A4. Climate Context'] },
+      'B': { title: 'Major Equipment', items: ['B1. HVAC Systems', 'B2. Utility Services'] },
+      'C': { title: 'Energy Baseline', items: ['C1. Baseline Considerations', 'C2. Model Inputs', 'C3. Baseline Model', 'C4. Measured Parameters'] },
+      'D': { title: 'Energy Allocation', items: ['D1. Scenario & Inputs', 'D2. Assumptions', 'D3. Allocation Summary', 'D4. Validation', 'D5. Spatial Allocation'] },
+      'Y': { title: 'Uncertainty', items: ['Y1. Baseline Uncertainty', 'Y2. Allocation Uncertainty', 'Y3. Implications'] },
+      'Z': { title: 'Supporting', items: ['Z1. Assumptions Log', 'Z2. Data Quality', 'Z3. Data Gaps', 'Z4. Document Control', 'Z5. Data Sources'] }
+    };
+
+    const legend = [
+      { icon: '🪶', label: 'Feishu' },
+      { icon: '📩', label: 'Email' },
+      { icon: '🔶', label: 'Create Thread' },
+      { icon: '🔴', label: 'Post to Project' },
+      { icon: '🟢', label: 'Available' },
+      { icon: '🟣', label: 'Cross-Project' },
+      { icon: '📎', label: 'Add to Thread' },
+      { icon: '🟦', label: 'SharePoint' }
+    ];
+
+    const dimensionTables = [
+      { file: 'dim_end_use_category.xlsx', purpose: 'HVAC end-use taxonomy', owner: 'Solutions' },
+      { file: 'dim_use_case.xlsx', purpose: 'ECM use cases with savings ranges', owner: 'Solutions' },
+      { file: 'dim_product.xlsx', purpose: 'Products with SKU, pricing', owner: 'Solutions' },
+      { file: 'dim_space.csv', purpose: 'Project-specific space hierarchy', owner: 'Per project' },
+      { file: 'dim_meter.csv', purpose: 'Project-specific meter inventory', owner: 'Per project' }
+    ];
+
+    const factTables = [
+      { pattern: 'fact_meter_monthly_[PROJECT]_[YYYYMM-YYYYMM].csv', granularity: 'Monthly', content: 'Billed consumption' },
+      { pattern: 'fact_meter_daily_[PROJECT]_[YYYYMMDD-YYYYMMDD].csv', granularity: 'Daily', content: 'Interval data' },
+      { pattern: 'fact_meter_hourly_[PROJECT]_[YYYYMMDD-YYYYMMDD].csv', granularity: 'Hourly', content: 'Interval data' },
+      { pattern: 'fact_energy_model_[PROJECT]_[YYYYMM-YYYYMM].csv', granularity: 'Monthly', content: 'Model inputs' },
+      { pattern: 'fact_allocation_[PROJECT].csv', granularity: 'Annual', content: 'End-use allocation' },
+      { pattern: 'fact_space_allocation_[PROJECT].csv', granularity: 'Annual', content: 'Spatial allocation' },
+      { pattern: 'fact_solution_[PROJECT].csv', granularity: 'Per ECM', content: 'Solution definitions' },
+      { pattern: 'fact_bom_[PROJECT].csv', granularity: 'Per item', content: 'Bill of materials' }
+    ];
+
+    // Components
+    function StageNode({ stage, isActive, isDimmed, onClick }) {
+      let className = 'stage-node';
+      if (isActive) className += ' active';
+      if (isDimmed) className += ' dimmed';
+      if (stage.isHtml) className += ' html-output';
+      if (stage.isClient) className += ' client-facing';
+
+      return (
+        <div className={className} onClick={() => onClick(stage)}>
+          <div className="stage-id">{stage.id}</div>
+          <div className="stage-name">{stage.name}</div>
+        </div>
+      );
+    }
+
+    function StageDetail({ stage }) {
+      if (!stage) return null;
+
+      return (
+        <div className="stage-detail">
+          <div className="stage-detail-header">
+            <div className="stage-detail-title">
+              <span className="stage-detail-id">{stage.id}</span>
+              <span className="stage-detail-name">{stage.name}</span>
+            </div>
+            <div className="stage-detail-path">
+              {stage.paths.map(p => (
+                <span key={p} className={`path-badge path-${p.toLowerCase()}`}>{p}</span>
+              ))}
+            </div>
+          </div>
+          <div className="stage-detail-content">
+            {stage.methodology && (
+              <div className="detail-section">
+                <h4>Methodology</h4>
+                <ul>
+                  <li><span className="file-icon">📄</span><span className="file-name">{stage.methodology}</span></li>
+                </ul>
+              </div>
+            )}
+            <div className="detail-section">
+              <h4>Inputs</h4>
+              <ul>
+                {stage.inputs.map((input, i) => (
+                  <li key={i}>
+                    <span className="file-icon">{input.icon}</span>
+                    <span className="file-name">{input.name}</span>
+                    {input.path && <span className="file-path">{input.path}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="detail-section">
+              <h4>Outputs</h4>
+              <ul>
+                {stage.outputs.map((output, i) => (
+                  <li key={i}>
+                    <span className="file-icon">{output.icon}</span>
+                    <span className="file-name">{output.name}</span>
+                    {output.path && <span className="file-path">{output.path}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {stage.sections && (
+              <div className="detail-section">
+                <h4>D1 Sections Updated</h4>
+                <ul><li>Sections {stage.sections}</li></ul>
+              </div>
+            )}
+            {stage.note && (
+              <div className="detail-section">
+                <h4>Note</h4>
+                <ul><li>{stage.note}</li></ul>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function DocumentCard({ doc, onClick }) {
+      return (
+        <div className={`doc-card ${doc.type}`} onClick={() => onClick(doc)}>
+          <div className="doc-card-header">
+            <span className="doc-card-code">{doc.code}</span>
+            <span className="doc-card-name">{doc.name}</span>
+          </div>
+          <div className="doc-card-desc">{doc.desc}</div>
+          {doc.source && <div className="doc-card-source">Source: {doc.source} | Path: {doc.paths}</div>}
+        </div>
+      );
+    }
+
+    function Appendix({ title, children, defaultOpen = false }) {
+      const [isOpen, setIsOpen] = useState(defaultOpen);
+
+      return (
+        <div className="appendix-section">
+          <div className="appendix-header" onClick={() => setIsOpen(!isOpen)}>
+            <h3>{title}</h3>
+            <span className={`appendix-toggle ${isOpen ? 'open' : ''}`}>▼</span>
+          </div>
+          <div className={`appendix-content ${isOpen ? 'open' : ''}`}>
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    function DocModal({ doc, onClose }) {
+      if (!doc) return null;
+
+      const outline = doc.code === 'D1' ? d1Outline : null;
+
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>{doc.code} — {doc.name}</h2>
+            <p>{doc.desc}</p>
+            {doc.source && <p><strong>Source:</strong> {doc.source}</p>}
+            {doc.paths && <p><strong>Paths:</strong> {doc.paths}</p>}
+            {outline && (
+              <div className="section-outline">
+                <h3>Section Outline</h3>
+                {Object.entries(outline).map(([key, section]) => (
+                  <div key={key}>
+                    <h4>({key}) {section.title}</h4>
+                    <ul>
+                      {section.items.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [activePath, setActivePath] = useState('A');
+      const [selectedStage, setSelectedStage] = useState(stages[0]);
+      const [selectedDoc, setSelectedDoc] = useState(null);
+
+      const isStageVisible = (stage) => {
+        return stage.paths.includes(activePath);
+      };
+
+      const pathAStages = stages.filter(s => s.paths.includes('A') && !s.paths.includes('B'));
+      const pathBStages = stages.filter(s => s.paths.includes('B') && !s.paths.includes('A'));
+      const commonStages = stages.filter(s => s.paths.includes('A') && s.paths.includes('B'));
+
+      return (
+        <div className="app-container">
+          <header className="header">
+            <h1>
+              ⚡ Gaiamesh Process Flow
+              <span className="header-version">v1.0</span>
+            </h1>
+            <div className="doc-tabs">
+              {documents.slice(0, 3).map(doc => (
+                <button key={doc.code} className="doc-tab d-series" onClick={() => setSelectedDoc(doc)}>
+                  {doc.code}
+                </button>
+              ))}
+              {documents.slice(3).map(doc => (
+                <button key={doc.code} className="doc-tab c-series" onClick={() => setSelectedDoc(doc)}>
+                  {doc.code}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          <div className="path-filter">
+            <span className="path-filter-label">Data Path:</span>
+            <div className="path-buttons">
+              <button 
+                className={`path-btn path-a ${activePath === 'A' ? 'active' : ''}`}
+                onClick={() => setActivePath('A')}
+              >
+                A — Bills
+              </button>
+              <button 
+                className={`path-btn path-b ${activePath === 'B' ? 'active' : ''}`}
+                onClick={() => setActivePath('B')}
+              >
+                B — Submetered
+              </button>
+              <button 
+                className={`path-btn path-c ${activePath === 'C' ? 'active' : ''}`}
+                onClick={() => setActivePath('C')}
+              >
+                C — Operating
+              </button>
+            </div>
+            <span className="path-desc">
+              {activePath === 'A' && 'Pre-sale • Monthly utility bills • Higher uncertainty'}
+              {activePath === 'B' && 'Pre-sale • Hourly/daily submeter data • Lower uncertainty'}
+              {activePath === 'C' && 'Post-deployment • Operating data • M&V reporting'}
+            </span>
+          </div>
+
+          <main className="main-content">
+            <section className="flow-section">
+              <h2>Process Flow — Path {activePath}</h2>
+              <div className="flow-diagram">
+                <div className="flow-row">
+                  {stages.filter(s => ['D1_0', 'D1_1'].includes(s.id)).map((stage, i) => (
+                    <React.Fragment key={stage.id}>
+                      {i > 0 && <span className="flow-arrow">→</span>}
+                      <StageNode 
+                        stage={stage} 
+                        isActive={selectedStage?.id === stage.id}
+                        isDimmed={!isStageVisible(stage)}
+                        onClick={setSelectedStage}
+                      />
+                    </React.Fragment>
+                  ))}
+                  <span className="flow-arrow">→</span>
+                  <StageNode 
+                    stage={stages.find(s => activePath === 'A' ? s.id === 'D1_2A' : s.id === 'D1_2B')} 
+                    isActive={selectedStage?.id === (activePath === 'A' ? 'D1_2A' : 'D1_2B')}
+                    onClick={setSelectedStage}
+                  />
+                </div>
+                <div className="flow-row">
+                  {stages.filter(s => ['D1_3', 'D1_4', 'D1_5', 'D1'].includes(s.id)).map((stage, i) => (
+                    <React.Fragment key={stage.id}>
+                      {i > 0 && <span className="flow-arrow">→</span>}
+                      <StageNode 
+                        stage={stage} 
+                        isActive={selectedStage?.id === stage.id}
+                        isDimmed={!isStageVisible(stage)}
+                        onClick={setSelectedStage}
+                      />
+                    </React.Fragment>
+                  ))}
+                </div>
+                {activePath !== 'C' && (
+                  <div className="flow-row">
+                    {stages.filter(s => ['D2_1', 'D2'].includes(s.id)).map((stage, i) => (
+                      <React.Fragment key={stage.id}>
+                        {i > 0 && <span className="flow-arrow">→</span>}
+                        <StageNode 
+                          stage={stage} 
+                          isActive={selectedStage?.id === stage.id}
+                          isDimmed={!isStageVisible(stage)}
+                          onClick={setSelectedStage}
+                        />
+                      </React.Fragment>
+                    ))}
+                    <span className="flow-arrow">→</span>
+                    {activePath === 'A' ? (
+                      <>
+                        <StageNode 
+                          stage={stages.find(s => s.id === 'C1')} 
+                          isActive={selectedStage?.id === 'C1'}
+                          onClick={setSelectedStage}
+                        />
+                        <span className="flow-arrow">/</span>
+                        <StageNode 
+                          stage={stages.find(s => s.id === 'C2')} 
+                          isActive={selectedStage?.id === 'C2'}
+                          onClick={setSelectedStage}
+                        />
+                      </>
+                    ) : (
+                      <StageNode 
+                        stage={stages.find(s => s.id === 'C1')} 
+                        isActive={selectedStage?.id === 'C1'}
+                        onClick={setSelectedStage}
+                      />
+                    )}
+                  </div>
+                )}
+                {activePath === 'C' && (
+                  <div className="flow-row">
+                    {stages.filter(s => ['D3_1', 'D3'].includes(s.id)).map((stage, i) => (
+                      <React.Fragment key={stage.id}>
+                        {i > 0 && <span className="flow-arrow">→</span>}
+                        <StageNode 
+                          stage={stage} 
+                          isActive={selectedStage?.id === stage.id}
+                          onClick={setSelectedStage}
+                        />
+                      </React.Fragment>
+                    ))}
+                    <span className="flow-arrow">→</span>
+                    <StageNode 
+                      stage={stages.find(s => s.id === 'C3')} 
+                      isActive={selectedStage?.id === 'C3'}
+                      onClick={setSelectedStage}
+                    />
+                    <span className="flow-arrow">/</span>
+                    <StageNode 
+                      stage={stages.find(s => s.id === 'C4')} 
+                      isActive={selectedStage?.id === 'C4'}
+                      onClick={setSelectedStage}
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <StageDetail stage={selectedStage} />
+
+            <section className="flow-section">
+              <h2>Document Hierarchy</h2>
+              <div className="doc-hierarchy">
+                {documents.map(doc => (
+                  <DocumentCard key={doc.code} doc={doc} onClick={setSelectedDoc} />
+                ))}
+              </div>
+            </section>
+
+            <Appendix title="Dimension Tables">
+              <table className="appendix-table">
+                <thead>
+                  <tr><th>File</th><th>Purpose</th><th>Owner</th></tr>
+                </thead>
+                <tbody>
+                  {dimensionTables.map((t, i) => (
+                    <tr key={i}><td><code>{t.file}</code></td><td>{t.purpose}</td><td>{t.owner}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </Appendix>
+
+            <Appendix title="Fact Tables">
+              <table className="appendix-table">
+                <thead>
+                  <tr><th>Pattern</th><th>Granularity</th><th>Content</th></tr>
+                </thead>
+                <tbody>
+                  {factTables.map((t, i) => (
+                    <tr key={i}><td><code>{t.pattern}</code></td><td>{t.granularity}</td><td>{t.content}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </Appendix>
+
+            <Appendix title="File Naming Convention">
+              <table className="appendix-table">
+                <thead>
+                  <tr><th>Type</th><th>Pattern</th><th>Example</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Methodology</td><td><code>[FLOW_ID]_[name]_methodology.md</code></td><td><code>D1_3_energy_model_methodology.md</code></td></tr>
+                  <tr><td>Template</td><td><code>[DOC_ID]_[name]_template.html</code></td><td><code>D1_project_design_basis_template.html</code></td></tr>
+                  <tr><td>Project Output</td><td><code>[PROJECT]_[output].csv/html</code></td><td><code>CNM-25-025_D1_design_basis.html</code></td></tr>
+                </tbody>
+              </table>
+            </Appendix>
+
+            <Appendix title="SharePoint Structure">
+              <table className="appendix-table">
+                <thead>
+                  <tr><th>Subdirectory</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>in_utility/</code></td><td>Utility bills (electricity, district_thermal, gas)</td></tr>
+                  <tr><td><code>in_operating/</code></td><td>BMS exports, setpoints, schedules</td></tr>
+                  <tr><td><code>in_equipment/</code></td><td>Equipment data, nameplate, specs</td></tr>
+                  <tr><td><code>out_analysis/</code></td><td>D1, D2, D3 outputs</td></tr>
+                  <tr><td><code>out_proposals/</code></td><td>C1, C2, C3, C4 client documents</td></tr>
+                </tbody>
+              </table>
+            </Appendix>
+          </main>
+
+          <footer className="legend-bar">
+            {legend.map((item, i) => (
+              <div key={i} className="legend-item">
+                <span className="legend-icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </footer>
+
+          {selectedDoc && <DocModal doc={selectedDoc} onClose={() => setSelectedDoc(null)} />}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

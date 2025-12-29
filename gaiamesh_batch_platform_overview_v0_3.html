@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaiamesh Batch Analytics Platform - Architecture Overview</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --secondary: #57837b;
+            --accent: #c38e70;
+            --light: #f5f5f5;
+            --dark: #2d3436;
+            --border: #ddd;
+            --success: #27ae60;
+            --warning: #f39c12;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #fff;
+        }
+
+        header {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h2 .section-num {
+            background: var(--primary);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        /* Purpose Section */
+        .purpose {
+            background: var(--light);
+            padding: 20px 25px;
+            border-left: 4px solid var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        /* Business Model */
+        .business-model {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .business-hierarchy {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .biz-box {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            min-width: 280px;
+        }
+
+        .biz-box.platform {
+            background: var(--primary);
+            color: white;
+        }
+
+        .biz-box.internal {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .biz-box.partner {
+            background: var(--accent);
+            color: white;
+        }
+
+        .biz-box.client {
+            background: #e8e8e8;
+            color: var(--dark);
+            border: 2px dashed #999;
+        }
+
+        .biz-connector {
+            width: 2px;
+            height: 20px;
+            background: #999;
+        }
+
+        .biz-branch {
+            display: flex;
+            gap: 40px;
+            position: relative;
+        }
+
+        .biz-branch::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: #999;
+        }
+
+        /* Path Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:nth-child(even) {
+            background: var(--light);
+        }
+
+        .path-label {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .arch-layer {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .arch-layer-header {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .arch-layer-header .tech {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .arch-layer-content {
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .arch-box {
+            flex: 1;
+            min-width: 200px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .arch-box h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .arch-box ul {
+            list-style: none;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .arch-box ul li {
+            padding: 3px 0;
+        }
+
+        .arch-box ul li::before {
+            content: '•';
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .arch-box.future {
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        .arch-box.future h4::after {
+            content: ' (Future)';
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .arch-connector {
+            display: flex;
+            justify-content: center;
+            padding: 5px 0;
+        }
+
+        .arch-connector span {
+            background: var(--secondary);
+            color: white;
+            padding: 4px 15px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .arch-users {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .arch-user {
+            text-align: center;
+        }
+
+        .arch-user-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .arch-user-label {
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        /* Takeaway Box */
+        .takeaway {
+            background: #e8f4f8;
+            border-left: 4px solid var(--secondary);
+            padding: 15px 20px;
+            margin: 20px 0;
+        }
+
+        .takeaway h4 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .takeaway ul {
+            margin-left: 20px;
+        }
+
+        .takeaway ul li {
+            margin-bottom: 5px;
+        }
+
+        /* Deployment Cards */
+        .deployment-cards {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .deploy-card {
+            flex: 1;
+            min-width: 280px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .deploy-card.future {
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        .deploy-card-header {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .deploy-card.china .deploy-card-header {
+            background: #c41e3a;
+            color: white;
+        }
+
+        .deploy-card.global .deploy-card-header {
+            background: var(--primary);
+            color: white;
+        }
+
+        .deploy-card.dedicated .deploy-card-header {
+            background: #888;
+            color: white;
+        }
+
+        .deploy-card-icon {
+            font-size: 1.8rem;
+        }
+
+        .deploy-card-title {
+            font-weight: 600;
+        }
+
+        .deploy-card-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .deploy-card-content {
+            padding: 15px 20px;
+        }
+
+        .deploy-card-content p {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .deploy-card-content strong {
+            color: var(--primary);
+        }
+
+        .deploy-card-stack {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .deploy-card-stack span {
+            background: var(--light);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        /* Mermaid Diagram */
+        .mermaid-container {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        /* Data Model Summary */
+        .data-model-summary {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .data-model-group {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .data-model-group h4 {
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-model-group code {
+            display: block;
+            font-size: 0.85rem;
+            padding: 3px 0;
+            color: #555;
+        }
+
+        /* Scope Table */
+        .scope-table {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .scope-column {
+            flex: 1;
+            min-width: 280px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+        }
+
+        .scope-column.included {
+            border-color: var(--success);
+        }
+
+        .scope-column.future {
+            border-color: var(--warning);
+        }
+
+        .scope-column-header {
+            padding: 12px 20px;
+            font-weight: 600;
+        }
+
+        .scope-column.included .scope-column-header {
+            background: var(--success);
+            color: white;
+        }
+
+        .scope-column.future .scope-column-header {
+            background: var(--warning);
+            color: white;
+        }
+
+        .scope-column ul {
+            list-style: none;
+            padding: 15px 20px;
+        }
+
+        .scope-column ul li {
+            padding: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .scope-column.included ul li::before {
+            content: '✓';
+            color: var(--success);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .scope-column.future ul li::before {
+            content: '○';
+            color: var(--warning);
+            margin-right: 10px;
+        }
+
+        /* Next Steps */
+        .next-steps {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .next-steps ol {
+            margin-left: 20px;
+        }
+
+        .next-steps ol li {
+            padding: 8px 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+            .arch-layer, .deploy-card, .mermaid-container {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Gaiamesh Batch Analytics Platform</h1>
+    <div class="meta">
+        <span><strong>Document:</strong> Architecture Overview</span>
+        <span><strong>Version:</strong> 0.3 (Draft)</span>
+        <span><strong>Date:</strong> December 2024</span>
+        <span><strong>Status:</strong> For Review</span>
+    </div>
+</header>
+
+<!-- Section 1: Purpose -->
+<section>
+    <h2><span class="section-num">1</span> Purpose</h2>
+    <div class="purpose">
+        A SaaS platform enabling Gaiamesh and channel partners (JLL, HK M&V Client, etc.) to deliver energy analysis and M&V reports to their end clients.
+    </div>
+</section>
+
+<!-- Section 2: Business Model -->
+<section>
+    <h2><span class="section-num">2</span> Business Model</h2>
+    <div class="business-model">
+        <div class="business-hierarchy">
+            <div class="biz-box platform">GAIAMESH (Platform Owner)</div>
+            <div class="biz-connector"></div>
+            <div class="biz-branch">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="biz-connector"></div>
+                    <div class="biz-box internal">Gaiamesh Sales<br><small>Internal team, direct sales</small></div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="biz-connector"></div>
+                    <div class="biz-box partner">Channel Partners<br><small>HK M&V Client, JLL, etc.</small></div>
+                    <div class="biz-connector"></div>
+                    <div class="biz-box client">End Clients<br><small>Receive C-series reports</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 3: What It Does -->
+<section>
+    <h2><span class="section-num">3</span> What It Does</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Path</th>
+                <th>Input</th>
+                <th>Analysis</th>
+                <th>Reports</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="path-label">A – Pre-sale (bills only)</td>
+                <td>Utility bills</td>
+                <td>Energy model, allocation, solutions</td>
+                <td>D1, D2 → C1 Proposal, C2 Health Check</td>
+            </tr>
+            <tr>
+                <td class="path-label">B – Pre-sale (submetered)</td>
+                <td>Submeter data + bills</td>
+                <td>Energy model, allocation, solutions</td>
+                <td>D1, D2 → C1 Proposal, C2 Health Check</td>
+            </tr>
+            <tr>
+                <td class="path-label">C – Post-deployment</td>
+                <td>Operating data + bills</td>
+                <td>Energy model, allocation, M&V</td>
+                <td>D1, D3 → C3 M&V Report, C4 Health Check</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Section 4: System Architecture -->
+<section>
+    <h2><span class="section-num">4</span> System Architecture</h2>
+    
+    <div class="architecture">
+        <!-- Users -->
+        <div class="arch-users">
+            <div class="arch-user">
+                <div class="arch-user-icon">👤</div>
+                <div class="arch-user-label">Gaiamesh Admin</div>
+            </div>
+            <div class="arch-user">
+                <div class="arch-user-icon">👥</div>
+                <div class="arch-user-label">Partner Users</div>
+            </div>
+            <div class="arch-user">
+                <div class="arch-user-icon">🏢</div>
+                <div class="arch-user-label">End Clients</div>
+            </div>
+        </div>
+
+        <div class="arch-connector"><span>HTTPS</span></div>
+
+        <!-- Portal Layer -->
+        <div class="arch-layer">
+            <div class="arch-layer-header">
+                <span>Portal Layer</span>
+                <span class="tech">React</span>
+            </div>
+            <div class="arch-layer-content">
+                <div class="arch-box">
+                    <h4>Partner Portal</h4>
+                    <ul>
+                        <li>Upload CSVs</li>
+                        <li>Trigger report generation</li>
+                        <li>Review D-series</li>
+                        <li>Release C-series</li>
+                        <li>Branding configuration</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>End Client Portal</h4>
+                    <ul>
+                        <li>View released C-series</li>
+                        <li>Download PDF</li>
+                        <li>Secure link access (no login)</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>IoT Portal Integration</h4>
+                    <ul>
+                        <li>Gaiamesh clients only</li>
+                        <li>C-series view via API</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="arch-connector"><span>REST API</span></div>
+
+        <!-- Backend Layer -->
+        <div class="arch-layer">
+            <div class="arch-layer-header">
+                <span>Backend Layer</span>
+                <span class="tech">Django + DRF</span>
+            </div>
+            <div class="arch-layer-content">
+                <div class="arch-box">
+                    <h4>Auth Service</h4>
+                    <ul>
+                        <li>Multi-tenant</li>
+                        <li>Role-based</li>
+                        <li>Partner isolation</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>Ingestion API</h4>
+                    <ul>
+                        <li>CSV parsing</li>
+                        <li>Validation</li>
+                        <li>Upsert logic</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>Report Service</h4>
+                    <ul>
+                        <li>D1, D2, D3, C1-C4</li>
+                        <li>Jinja2 → HTML</li>
+                        <li>WeasyPrint → PDF</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>Delivery Service</h4>
+                    <ul>
+                        <li>Email (SMTP)</li>
+                        <li>Secure links</li>
+                        <li>SharePoint sync (optional)</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>Project Service</h4>
+                    <ul>
+                        <li>CRUD operations</li>
+                        <li>Status tracking</li>
+                        <li>Workflow management</li>
+                    </ul>
+                </div>
+                <div class="arch-box future">
+                    <h4>Claude API</h4>
+                    <ul>
+                        <li>get_project_data()</li>
+                        <li>upsert_records()</li>
+                        <li>Direct JSON integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="arch-connector"><span>Internal</span></div>
+
+        <!-- Data Layer -->
+        <div class="arch-layer">
+            <div class="arch-layer-header">
+                <span>Data & Infrastructure Layer</span>
+                <span class="tech">PostgreSQL + Redis + Celery</span>
+            </div>
+            <div class="arch-layer-content">
+                <div class="arch-box">
+                    <h4>PostgreSQL</h4>
+                    <ul>
+                        <li>dim_admin_* (platform)</li>
+                        <li>dim_* (reference)</li>
+                        <li>fact_* (project data)</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>Redis</h4>
+                    <ul>
+                        <li>Job queue</li>
+                        <li>Caching</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>Celery Workers</h4>
+                    <ul>
+                        <li>PDF generation</li>
+                        <li>Email delivery</li>
+                        <li>SharePoint sync</li>
+                    </ul>
+                </div>
+                <div class="arch-box">
+                    <h4>File Storage</h4>
+                    <ul>
+                        <li>Azure Blob (Global)</li>
+                        <li>Aliyun OSS (China)</li>
+                        <li>CSV uploads, reports</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="takeaway">
+        <h4>Key Points</h4>
+        <ul>
+            <li><strong>Three-layer stack:</strong> React portal → Django API → PostgreSQL + Redis + Blob storage</li>
+            <li><strong>Multi-tenant by design:</strong> Partners isolated; Gaiamesh has full visibility</li>
+            <li><strong>Async processing:</strong> Celery workers handle PDF generation, email, SharePoint sync</li>
+            <li><strong>Four user roles:</strong> Gaiamesh Admin (all), Partner Admin (own partner), Partner User (upload/review/release), End Client (view C-series only)</li>
+            <li><strong>Future-ready:</strong> Claude API integration slot designed but not built in Phase 1</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Section 5: Multi-Instance Deployment -->
+<section>
+    <h2><span class="section-num">5</span> Multi-Instance Deployment</h2>
+    
+    <div class="deployment-cards">
+        <div class="deploy-card china">
+            <div class="deploy-card-header">
+                <span class="deploy-card-icon">🇨🇳</span>
+                <div>
+                    <div class="deploy-card-title">Gaiamesh China</div>
+                    <div class="deploy-card-subtitle">Own servers in China</div>
+                </div>
+            </div>
+            <div class="deploy-card-content">
+                <p><strong>URL:</strong> cn.gaiamesh.com</p>
+                <p><strong>Partners:</strong> HK M&V Client, China clients, Gaiamesh Sales (China)</p>
+                <p><strong>Data residency:</strong> All data stays in China</p>
+                <div class="deploy-card-stack">
+                    <span>Django</span>
+                    <span>PostgreSQL</span>
+                    <span>Redis</span>
+                    <span>Aliyun OSS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="deploy-card global">
+            <div class="deploy-card-header">
+                <span class="deploy-card-icon">🌐</span>
+                <div>
+                    <div class="deploy-card-title">Gaiamesh Global</div>
+                    <div class="deploy-card-subtitle">Azure / AWS</div>
+                </div>
+            </div>
+            <div class="deploy-card-content">
+                <p><strong>URL:</strong> global.gaiamesh.com (or region-specific)</p>
+                <p><strong>Partners:</strong> JLL, non-China partners</p>
+                <p><strong>Scalability:</strong> Can split by region (APAC, EMEA, Americas) if needed</p>
+                <div class="deploy-card-stack">
+                    <span>Django</span>
+                    <span>PostgreSQL</span>
+                    <span>Redis</span>
+                    <span>Azure Blob</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="deploy-card dedicated future">
+            <div class="deploy-card-header">
+                <span class="deploy-card-icon">🏢</span>
+                <div>
+                    <div class="deploy-card-title">Client-Dedicated</div>
+                    <div class="deploy-card-subtitle">Future (if required)</div>
+                </div>
+            </div>
+            <div class="deploy-card-content">
+                <p><strong>When:</strong> Contractually required by enterprise client</p>
+                <p><strong>Scope:</strong> Dedicated instance, isolated infrastructure</p>
+                <p><strong>Pricing:</strong> Premium tier</p>
+                <div class="deploy-card-stack">
+                    <span>Same stack</span>
+                    <span>Client cloud or Gaiamesh-managed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="takeaway">
+        <h4>Key Points</h4>
+        <ul>
+            <li><strong>Same codebase:</strong> Identical version deployed to all instances</li>
+            <li><strong>Reference data synced:</strong> dim_end_use_category, dim_use_case, dim_product shared across instances</li>
+            <li><strong>China data residency:</strong> Mandatory for China projects; own servers ensure compliance</li>
+            <li><strong>Global flexibility:</strong> One instance initially; can split by region as volume grows</li>
+            <li><strong>Dedicated option:</strong> Available for enterprise clients with specific requirements</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Section 6: Phase 1 Workflow -->
+<section>
+    <h2><span class="section-num">6</span> Phase 1 Workflow</h2>
+    
+    <div class="mermaid-container">
+        <pre class="mermaid">
+sequenceDiagram
+    participant P as Partner User
+    participant C as Claude Thread
+    participant DB as Portal / Database
+    participant E as End Client
+
+    P->>C: Upload source data
+    
+    rect rgb(240, 248, 255)
+        Note over C: Analysis Pipeline (with human QC gates)
+        C->>C: D1_1 Pre-population
+        C->>P: Review dim_space, dim_meter
+        P->>C: Approve / Request changes
+        C->>C: D1_2 Data Ingestion
+        C->>P: Review fact_meter_*
+        P->>C: Approve / Request changes
+        C->>C: D1_3 Energy Model
+        C->>P: Review model results
+        P->>C: Approve / Request changes
+        C->>C: D1_4 Energy Allocation
+        C->>C: D1_5 Space Allocation
+        C->>C: D2 or D3 Analysis
+        C->>P: Review final outputs
+        P->>C: Approve all steps
+    end
+
+    C->>P: Download all CSVs
+    P->>DB: Upload CSVs
+    DB->>DB: Ingest & validate
+    P->>DB: Trigger report generation
+    DB->>DB: Generate D1, D2/D3, C1-C4
+    P->>DB: Review reports
+    P->>DB: Release C-series
+    DB->>E: Notify (email / secure link)
+    E->>DB: View C-series reports
+        </pre>
+    </div>
+
+    <div class="takeaway">
+        <h4>Key Points</h4>
+        <ul>
+            <li><strong>Human-gated:</strong> Every analysis step (D1_1 through D3) requires review; QC notes captured in thread</li>
+            <li><strong>CSV as handoff:</strong> Claude generates CSVs; human downloads after all steps approved</li>
+            <li><strong>Database is source of truth:</strong> Reports generated from database, not CSVs directly</li>
+            <li><strong>Partner controls release:</strong> End clients only see C-series after explicit partner approval</li>
+            <li><strong>Flexible delivery:</strong> Portal login, PDF email, or secure link (configured per partner)</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Section 7: Data Model -->
+<section>
+    <h2><span class="section-num">7</span> Data Model</h2>
+    
+    <div class="data-model-summary">
+        <div class="data-model-group">
+            <h4>Platform-Level (dim_admin_*)</h4>
+            <code>dim_admin_partner</code>
+            <code>dim_admin_user</code>
+            <code>dim_admin_client</code>
+        </div>
+        <div class="data-model-group">
+            <h4>Reference (dim_*)</h4>
+            <code>dim_account</code>
+            <code>dim_end_use_category</code>
+            <code>dim_use_case</code>
+            <code>dim_product</code>
+            <code>dim_weather_station</code>
+        </div>
+        <div class="data-model-group">
+            <h4>Project-Level (with project_id)</h4>
+            <code>dim_project, dim_building</code>
+            <code>dim_space, dim_meter</code>
+            <code>fact_meter_*, fact_energy_model</code>
+            <code>fact_allocation, fact_space_allocation</code>
+            <code>fact_solution, fact_mv_*</code>
+        </div>
+    </div>
+    
+    <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+        <em>See Data Layer Specification for full schema, relationships, and indexes.</em>
+    </p>
+</section>
+
+<!-- Section 8: Phase 1 Scope -->
+<section>
+    <h2><span class="section-num">8</span> Phase 1 Scope (HK MVP – 3 Months)</h2>
+    
+    <div class="scope-table">
+        <div class="scope-column included">
+            <div class="scope-column-header">Included</div>
+            <ul>
+                <li>All paths (A, B, C)</li>
+                <li>All reports (D1, D2, D3, C1-C4)</li>
+                <li>CSV ingestion with validation</li>
+                <li>Partner portal</li>
+                <li>End client portal</li>
+                <li>Multi-tenant authentication</li>
+                <li>Configurable branding</li>
+                <li>Multi-instance ready</li>
+            </ul>
+        </div>
+        <div class="scope-column future">
+            <div class="scope-column-header">Future</div>
+            <ul>
+                <li>Mapped adapter (automated BMS)</li>
+                <li>Gaiamesh IoT adapter</li>
+                <li>Claude API direct integration (JSON)</li>
+                <li>Partner self-admin</li>
+                <li>Agentic automation</li>
+                <li>SharePoint sync</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Section 9: Next Steps -->
+<section>
+    <h2><span class="section-num">9</span> Next Steps</h2>
+    
+    <div class="next-steps">
+        <ol>
+            <li>☐ Review this overview</li>
+            <li>☐ Develop detailed specs per layer (Data, Backend, Portal, Report)</li>
+            <li>☐ Confirm HK MVP deliverables and timeline</li>
+            <li>☐ Assign development resources</li>
+        </ol>
+    </div>
+</section>
+
+<footer>
+    <p>Gaiamesh Batch Analytics Platform – Architecture Overview v0.3</p>
+</footer>
+
+<script>
+    mermaid.initialize({ 
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            primaryColor: '#1a5f7a',
+            primaryTextColor: '#2d3436',
+            primaryBorderColor: '#1a5f7a',
+            lineColor: '#57837b',
+            secondaryColor: '#f5f5f5',
+            tertiaryColor: '#e8f4f8',
+            actorTextColor: '#2d3436',
+            actorLineColor: '#1a5f7a',
+            signalColor: '#2d3436',
+            signalTextColor: '#2d3436',
+            labelTextColor: '#2d3436',
+            loopTextColor: '#2d3436',
+            noteBorderColor: '#1a5f7a',
+            noteBkgColor: '#e8f4f8',
+            noteTextColor: '#2d3436',
+            activationBorderColor: '#1a5f7a',
+            activationBkgColor: '#f5f5f5',
+            sequenceNumberColor: '#fff'
+        },
+        sequence: {
+            actorMargin: 50,
+            messageMargin: 40,
+            useMaxWidth: true
+        }
+    });
+</script>
+
+</body>
+</html>
