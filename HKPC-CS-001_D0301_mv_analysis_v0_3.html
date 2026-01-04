@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D0301 M&V Analysis — Option B | HK-25-001.01</title>
+    
+    <!-- DOCUMENT METADATA -->
+    <!-- 
+    Document: HKPC-CS-001_D0301_mv_analysis_v0_2.html
+    Type: D0301 M&V Analysis (Option B - Retrofit Isolation)
+    Project: Dominion Centre VSD Pump Retrofit
+    Version: 0.2
+    Date: 2026-01-04
+    
+    Changes from v0.1:
+    - New header format (D0100 pattern)
+    - Added Section A: Project Context with building info and use case reference
+    - Corrected energy proportions (pump = 7% of building, EUI = 175)
+    - Streamlined summary card (removed redundant items)
+    - Fixed Y3 confidence interval chart visualization
+    - Added E2 benchmark comparison
+    - Renamed B1 to "ECM Scope"
+    -->
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    
+    <style>
+        /* ============================================
+           ROOT VARIABLES - GAIAMESH BRAND
+           ============================================ */
+        :root {
+            /* Primary Brand Palette */
+            --primary: #224C2E;
+            --secondary: #2d5a38;
+            --accent: #3a7d44;
+            
+            /* Backgrounds */
+            --body-bg: #F5F3F0;
+            --light-bg: #faf9f7;
+            --white: #ffffff;
+            
+            /* Borders & Text */
+            --border: #e2e0dc;
+            --text: #2d3748;
+            --muted: #718096;
+            
+            /* Status Colors */
+            --success: #224C2E;
+            --success-bg: #d4edda;
+            --warning: #c05621;
+            --warning-bg: #feebc8;
+            --danger: #c53030;
+            --danger-bg: #fed7d7;
+            --info: #2b6cb0;
+            --info-bg: #ebf8ff;
+            
+            /* Chart Colors */
+            --chart-1: #224C2E;
+            --chart-2: #E76F51;
+            --chart-3: #2E86AB;
+            --chart-4: #F18F01;
+            --chart-5: #A23B72;
+            --chart-6: #E9C46A;
+            --chart-7: #718096;
+            
+            /* M&V Specific */
+            --baseline: #2E86AB;
+            --measured: #E76F51;
+            --avoided: #224C2E;
+            --uncertainty: #F18F01;
+        }
+        
+        /* ============================================
+           BASE STYLES
+           ============================================ */
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: var(--text);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--body-bg);
+        }
+        
+        /* ============================================
+           DOCUMENT HEADER (D0100 Pattern)
+           ============================================ */
+        .doc-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .doc-logo {
+            width: 80px;
+            height: auto;
+            flex-shrink: 0;
+        }
+        
+        .doc-header-content {
+            flex-grow: 1;
+        }
+        
+        .doc-type {
+            display: inline-block;
+            background: var(--baseline);
+            color: white;
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .doc-header-content h1 {
+            color: var(--primary);
+            margin: 8px 0 5px 0;
+            font-size: 20pt;
+        }
+        
+        .doc-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 5px 0;
+        }
+        
+        .doc-header-row .left {
+            color: var(--secondary);
+            font-size: 12pt;
+        }
+        
+        .doc-header-row .right {
+            color: var(--muted);
+            font-size: 11pt;
+            font-weight: 600;
+        }
+        
+        .doc-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 10pt;
+            color: var(--muted);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+        
+        /* ============================================
+           TABLE OF CONTENTS
+           ============================================ */
+        .toc {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 14pt;
+            border-bottom: none;
+        }
+        
+        .toc-columns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .toc-section { margin-bottom: 10px; }
+        
+        .toc-section-title {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+        
+        .toc-section ul {
+            margin: 0;
+            padding-left: 20px;
+            list-style: none;
+        }
+        
+        .toc-section li { margin: 3px 0; }
+        
+        .toc-section a {
+            color: var(--text);
+            text-decoration: none;
+        }
+        
+        .toc-section a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        
+        /* ============================================
+           SUMMARY CARD (Streamlined)
+           ============================================ */
+        .summary-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .timeline {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0;
+            margin: 15px 0;
+        }
+        
+        .timeline-segment {
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        
+        .timeline-segment.baseline {
+            background: rgba(46, 134, 171, 0.1);
+            border: 2px solid var(--baseline);
+            border-radius: 8px 0 0 8px;
+        }
+        
+        .timeline-segment.implementation {
+            background: var(--warning-bg);
+            border-top: 2px solid var(--warning);
+            border-bottom: 2px solid var(--warning);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 120px;
+        }
+        
+        .timeline-segment.reporting {
+            background: rgba(34, 76, 46, 0.1);
+            border: 2px solid var(--avoided);
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .timeline-segment .period {
+            font-weight: 600;
+            font-size: 10pt;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-segment .dates {
+            font-size: 9pt;
+            color: var(--muted);
+        }
+        
+        .summary-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-metric {
+            text-align: center;
+            padding: 15px;
+            background: var(--light-bg);
+            border-radius: 8px;
+        }
+        
+        .summary-metric .value {
+            font-size: 24pt;
+            font-weight: bold;
+            color: var(--avoided);
+        }
+        
+        .summary-metric .label {
+            font-size: 9pt;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+        
+        /* ============================================
+           SECTION GROUPS
+           ============================================ */
+        .section-group {
+            margin-top: 30px;
+            background: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .section-group h2 {
+            color: var(--primary);
+            font-size: 14pt;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+            margin: 0 0 20px 0;
+        }
+        
+        .section-group h3 {
+            color: var(--secondary);
+            font-size: 12pt;
+            margin: 25px 0 10px 0;
+        }
+        
+        .section-group h3:first-of-type {
+            margin-top: 0;
+        }
+        
+        /* ============================================
+           INFO CARDS (Building Overview)
+           ============================================ */
+        .info-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-card-title {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .info-card-subtitle {
+            font-size: 12pt;
+            opacity: 0.9;
+        }
+        
+        .info-card-detail {
+            font-size: 10pt;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .info-card-value {
+            font-size: 11pt;
+        }
+        
+        /* Context cards row */
+        .context-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .context-card {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .context-card .label {
+            font-size: 9pt;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+        
+        .context-card .value {
+            font-size: 12pt;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        /* ============================================
+           USE CASE REFERENCE CARD
+           ============================================ */
+        .use-case-card {
+            background: var(--light-bg);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .use-case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .use-case-id {
+            background: var(--accent);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: 600;
+        }
+        
+        .use-case-name {
+            font-size: 14pt;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 5px;
+        }
+        
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .use-case-section h4 {
+            font-size: 10pt;
+            color: var(--muted);
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .savings-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .savings-range .range {
+            font-size: 18pt;
+            font-weight: bold;
+            color: var(--avoided);
+        }
+        
+        .savings-range .unit {
+            font-size: 10pt;
+            color: var(--muted);
+        }
+        
+        .prerequisite-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .prerequisite-list li {
+            padding: 5px 0;
+            font-size: 10pt;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .prerequisite-list li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        /* ============================================
+           TABLES
+           ============================================ */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--light-bg);
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        /* ============================================
+           METRIC CARDS
+           ============================================ */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .metric-card.highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+        }
+        
+        .metric-card .value {
+            font-size: 28pt;
+            font-weight: bold;
+            color: var(--avoided);
+            line-height: 1.1;
+        }
+        
+        .metric-card.highlight .value {
+            color: white;
+        }
+        
+        .metric-card .unit {
+            font-size: 11pt;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+        
+        .metric-card.highlight .unit {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .metric-card .label {
+            font-size: 10pt;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+        
+        .metric-card.highlight .label {
+            color: rgba(255,255,255,0.9);
+        }
+        
+        /* ============================================
+           BENCHMARK COMPARISON
+           ============================================ */
+        .benchmark-container {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .benchmark-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .benchmark-label {
+            font-size: 10pt;
+            color: var(--muted);
+        }
+        
+        .benchmark-value {
+            font-size: 14pt;
+            font-weight: bold;
+            color: var(--avoided);
+        }
+        
+        .benchmark-bar {
+            position: relative;
+            height: 40px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: visible;
+        }
+        
+        .benchmark-range {
+            position: absolute;
+            top: 5px;
+            height: 30px;
+            background: rgba(58, 125, 68, 0.3);
+            border-radius: 15px;
+        }
+        
+        .benchmark-marker {
+            position: absolute;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--avoided);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10pt;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .benchmark-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 9pt;
+            color: var(--muted);
+        }
+        
+        .benchmark-assessment {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: var(--success-bg);
+            border-radius: 4px;
+            font-size: 10pt;
+            color: var(--success);
+        }
+        
+        /* ============================================
+           CHARTS
+           ============================================ */
+        .chart-container {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid var(--border);
+        }
+        
+        .chart-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* ============================================
+           BOUNDARY DIAGRAM
+           ============================================ */
+        .boundary-diagram {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid var(--border);
+        }
+        
+        /* ============================================
+           MODEL STATS
+           ============================================ */
+        .model-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .model-stat {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .model-stat .value {
+            font-size: 20pt;
+            font-weight: bold;
+            color: var(--baseline);
+        }
+        
+        .model-stat .label {
+            font-size: 9pt;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+        
+        .model-stat .threshold {
+            font-size: 8pt;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+        
+        .model-stat.pass .value {
+            color: var(--success);
+        }
+        
+        .model-stat.warn .value {
+            color: var(--warning);
+        }
+        
+        .model-stat.fail .value {
+            color: var(--danger);
+        }
+        
+        /* ============================================
+           CHECKLIST
+           ============================================ */
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        
+        .checklist li {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: var(--light-bg);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checklist li.pass {
+            background: var(--success-bg);
+        }
+        
+        .checklist-icon {
+            font-size: 14pt;
+            width: 24px;
+        }
+        
+        /* ============================================
+           FORMULA BOX
+           ============================================ */
+        .formula-box {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--baseline);
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .formula-box .formula {
+            font-size: 12pt;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        
+        .formula-box .variables {
+            font-size: 9pt;
+            color: var(--muted);
+        }
+        
+        /* ============================================
+           CONFIDENCE INTERVAL (Fixed)
+           ============================================ */
+        .ci-chart-container {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .ci-visual {
+            position: relative;
+            height: 60px;
+            margin: 30px 20px;
+        }
+        
+        .ci-axis {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+        }
+        
+        .ci-range-bar {
+            position: absolute;
+            top: 15px;
+            height: 30px;
+            background: var(--uncertainty);
+            opacity: 0.4;
+            border-radius: 4px;
+        }
+        
+        .ci-point-marker {
+            position: absolute;
+            top: 10px;
+            width: 4px;
+            height: 40px;
+            background: var(--avoided);
+            transform: translateX(-50%);
+        }
+        
+        .ci-point-label {
+            position: absolute;
+            top: -25px;
+            transform: translateX(-50%);
+            background: var(--avoided);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .ci-bound-label {
+            position: absolute;
+            bottom: -20px;
+            transform: translateX(-50%);
+            font-size: 9pt;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        
+        .ci-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .ci-summary-item .label {
+            font-size: 9pt;
+            color: var(--muted);
+        }
+        
+        .ci-summary-item .value {
+            font-size: 14pt;
+            font-weight: bold;
+            color: var(--text);
+        }
+        
+        .ci-summary-item.highlight .value {
+            color: var(--avoided);
+        }
+        
+        /* ============================================
+           NOTES & CALLOUTS
+           ============================================ */
+        .note {
+            background: var(--info-bg);
+            border-left: 4px solid var(--info);
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 10pt;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .doc-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 9pt;
+        }
+        
+        /* ============================================
+           PRINT STYLES
+           ============================================ */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                font-size: 10pt;
+            }
+            
+            .section-group {
+                break-inside: avoid;
+                border: 1px solid #ccc;
+                box-shadow: none;
+            }
+            
+            .chart-container {
+                break-inside: avoid;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- CONFIGURATION DATA -->
+<!-- ============================================ -->
+<script>
+const CONFIG = {
+    currency: 'HKD',
+    currencySymbol: 'HKD ',
+    electricityRate: 1.20,  // HKD/kWh
+    co2Factor: 0.71,        // kg CO2/kWh (HK grid average)
+    confidenceLevel: 90,    // %
+    tValue: 1.645,          // t-statistic for 90% CI
+};
+
+const DATA = {
+    // Project metadata
+    project: {
+        projectId: 'HK-25-001',
+        ecmId: '01',
+        fullId: 'HK-25-001.01',
+        clientName: '[Client Name]',
+        buildingName: '[Building Name]',
+        address: '43-59 Queen\'s Road East, Wan Chai',
+        city: 'Hong Kong',
+        coordinates: '22.276°N, 114.171°E',
+        gfa: 48000,           // m² (adjusted)
+        yearBuilt: 2008,
+        weatherStation: 'VHHH',
+        analyst: '[Analyst name]',
+        status: 'Draft',
+        version: 'v2025010401',
+    },
+    
+    // Building context
+    building: {
+        scope: 'whole_building',
+        useType: 'office',
+        control: 'owner',
+        thermalScenario: 'on_site_generation',
+        annualEnergy: 8400000,   // kWh (adjusted)
+        eui: 175,                // kWh/m²/year (adjusted)
+    },
+    
+    // ECM definition
+    ecm: {
+        ecmName: 'CHW Primary Pump VFD Retrofit',
+        ecmType: 'motors',
+        ipmvpOption: 'B',
+        measurementBoundary: 'Pump circuit submeter (MTR-PUMP-CHW)',
+        meterId: 'MTR-PUMP-CHW',
+        baselineStart: '2024-01-01',
+        baselineEnd: '2024-12-31',
+        implementationDate: '2025-01-31',
+        reportingStart: '2025-02-01',
+        reportingEnd: '2025-07-31',
+        equipment: [
+            { name: 'Primary CHW Pump 1', kw: 37 },
+            { name: 'Primary CHW Pump 2', kw: 37 },
+            { name: 'Primary CHW Pump 3', kw: 37 },
+            { name: 'Secondary CHW Pump 1', kw: 22 },
+            { name: 'Secondary CHW Pump 2', kw: 22 },
+            { name: 'Secondary CHW Pump 3', kw: 22 },
+        ],
+        totalCapacity: 177,  // kW
+    },
+    
+    // Use case reference
+    useCase: {
+        id: 'T3_011',
+        name: 'Pump VFD Retrofit',
+        primaryEndUse: 'Hydronic_Distribution',
+        savingsRangeLow: 30,
+        savingsRangeHigh: 50,
+        standardReference: 'ASHRAE Guideline 36',
+        prerequisites: [
+            'Constant-speed hydronic pumps serving variable loads',
+            'Control system level 1 (no existing VFD)',
+            'Pump curves available for sizing',
+            'VFD-rated motors confirmed',
+            'Control integration points identified',
+        ],
+    },
+    
+    // Baseline data (12 months)
+    baseline: [
+        { month: 'Jan 2024', periodStart: '2024-01-01', cdd: 18, kwh: 32420, days: 31 },
+        { month: 'Feb 2024', periodStart: '2024-02-01', cdd: 22, kwh: 33680, days: 29 },
+        { month: 'Mar 2024', periodStart: '2024-03-01', cdd: 48, kwh: 36140, days: 31 },
+        { month: 'Apr 2024', periodStart: '2024-04-01', cdd: 105, kwh: 42350, days: 30 },
+        { month: 'May 2024', periodStart: '2024-05-01', cdd: 215, kwh: 53280, days: 31 },
+        { month: 'Jun 2024', periodStart: '2024-06-01', cdd: 335, kwh: 64890, days: 30 },
+        { month: 'Jul 2024', periodStart: '2024-07-01', cdd: 402, kwh: 72450, days: 31 },
+        { month: 'Aug 2024', periodStart: '2024-08-01', cdd: 388, kwh: 70120, days: 31 },
+        { month: 'Sep 2024', periodStart: '2024-09-01', cdd: 318, kwh: 62780, days: 30 },
+        { month: 'Oct 2024', periodStart: '2024-10-01', cdd: 178, kwh: 49510, days: 31 },
+        { month: 'Nov 2024', periodStart: '2024-11-01', cdd: 68, kwh: 38240, days: 30 },
+        { month: 'Dec 2024', periodStart: '2024-12-01', cdd: 28, kwh: 33940, days: 31 },
+    ],
+    
+    // Baseline model
+    model: {
+        type: '3P-Cooling',
+        intercept: 31265,
+        cddSlope: 101.0,
+        cddBase: 18,
+        rSquared: 0.992,
+        cvrmse: 5.8,
+        nmbe: 0.02,
+        nObservations: 12,
+    },
+    
+    // Reporting data (6 months)
+    reporting: [
+        { month: 'Feb 2025', periodStart: '2025-02-01', cdd: 25, kwh: 19840, days: 28 },
+        { month: 'Mar 2025', periodStart: '2025-03-01', cdd: 52, kwh: 22180, days: 31 },
+        { month: 'Apr 2025', periodStart: '2025-04-01', cdd: 112, kwh: 26420, days: 30 },
+        { month: 'May 2025', periodStart: '2025-05-01', cdd: 228, kwh: 34150, days: 31 },
+        { month: 'Jun 2025', periodStart: '2025-06-01', cdd: 348, kwh: 41680, days: 30 },
+        { month: 'Jul 2025', periodStart: '2025-07-01', cdd: 415, kwh: 45320, days: 31 },
+    ],
+    
+    // M&V Results
+    results: {
+        cumulative: {
+            adjustedBaseline: 306770,
+            measured: 189590,
+            avoided: 117180,
+            savingsPct: 38.2,
+            fsuPct: 12.5,
+            savingsLow: 102533,
+            savingsHigh: 131828,
+        },
+        monthly: [
+            { month: 'Feb 2025', adjusted: 33790, measured: 19840, avoided: 13950, pct: 41.3 },
+            { month: 'Mar 2025', adjusted: 36517, measured: 22180, avoided: 14337, pct: 39.3 },
+            { month: 'Apr 2025', adjusted: 42577, measured: 26420, avoided: 16157, pct: 37.9 },
+            { month: 'May 2025', adjusted: 54293, measured: 34150, avoided: 20143, pct: 37.1 },
+            { month: 'Jun 2025', adjusted: 66413, measured: 41680, avoided: 24733, pct: 37.2 },
+            { month: 'Jul 2025', adjusted: 73180, measured: 45320, avoided: 27860, pct: 38.1 },
+        ],
+    },
+};
+
+// Calculated values
+DATA.building.ecmShare = ((DATA.baseline.reduce((s,d) => s + d.kwh, 0) / DATA.building.annualEnergy) * 100).toFixed(1);
+
+// Helper functions
+const fmt = {
+    num: (v, decimals = 0) => v != null ? v.toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    }) : '—',
+    pct: (v, decimals = 1) => v != null ? `${fmt.num(v, decimals)}%` : '—',
+    kwh: (v) => v != null ? `${fmt.num(v)} kWh` : '—',
+    currency: (v) => v != null ? `${CONFIG.currencySymbol}${fmt.num(v)}` : '—',
+    co2: (kwh) => kwh != null ? `${fmt.num(kwh * CONFIG.co2Factor / 1000, 1)} t` : '—',
+};
+</script>
+
+<!-- ============================================ -->
+<!-- DOCUMENT HEADER (D0100 Pattern)
+<!-- ============================================ -->
+<div class="doc-header">
+    <svg class="doc-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="#224C2E"/>
+        <text x="50" y="58" text-anchor="middle" fill="white" font-size="24" font-weight="bold">G</text>
+    </svg>
+    <div class="doc-header-content">
+        <!-- R1: Document Type -->
+        <span class="doc-type">M&V Analysis — Option B</span>
+        
+        <!-- R2: Client - Building | Project.ECM ID -->
+        <div class="doc-header-row">
+            <span class="left" id="header-client-building">[Client Name] - [Building Name]</span>
+            <span class="right" id="header-project-id">HK-25-001.01</span>
+        </div>
+        
+        <!-- R3: ECM Name (h1) -->
+        <h1 id="header-ecm-name">CHW Primary Pump VFD Retrofit</h1>
+        
+        <!-- R4: Status/Version | Analyst -->
+        <div class="doc-meta-row">
+            <span>Status: <strong id="header-status">Draft</strong> | <span id="header-version">v2025010401</span></span>
+            <span>Analyst: <span id="header-analyst">[Analyst name]</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================ -->
+<div class="toc">
+    <h2>Table of Contents</h2>
+    <div class="toc-columns">
+        <!-- Column 1 -->
+        <div>
+            <div class="toc-section">
+                <div class="toc-section-title">(A) Project Context</div>
+                <ul>
+                    <li><a href="#A1">A1. Building Overview</a></li>
+                    <li><a href="#A2">A2. Energy Context</a></li>
+                    <li><a href="#A3">A3. Use Case Reference</a></li>
+                </ul>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">(B) M&V Plan</div>
+                <ul>
+                    <li><a href="#B1">B1. ECM Scope</a></li>
+                    <li><a href="#B2">B2. Measurement Boundary</a></li>
+                    <li><a href="#B3">B3. Independent Variables</a></li>
+                    <li><a href="#B4">B4. Key Dates</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- Column 2 -->
+        <div>
+            <div class="toc-section">
+                <div class="toc-section-title">(C) Baseline Analysis</div>
+                <ul>
+                    <li><a href="#C1">C1. Baseline Data</a></li>
+                    <li><a href="#C2">C2. Baseline Model</a></li>
+                </ul>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">(D) Reporting Analysis</div>
+                <ul>
+                    <li><a href="#D1">D1. Reporting Data</a></li>
+                    <li><a href="#D2">D2. Adjusted Baseline vs Measured</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- Column 3 -->
+        <div>
+            <div class="toc-section">
+                <div class="toc-section-title">(E) Savings Results</div>
+                <ul>
+                    <li><a href="#E1">E1. Summary Metrics</a></li>
+                    <li><a href="#E2">E2. Benchmark Comparison</a></li>
+                    <li><a href="#E3">E3. Monthly Breakdown</a></li>
+                </ul>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">(Y) Uncertainty Analysis</div>
+                <ul>
+                    <li><a href="#Y1">Y1. Model Quality</a></li>
+                    <li><a href="#Y2">Y2. Fractional Savings Uncertainty</a></li>
+                    <li><a href="#Y3">Y3. Confidence Interval</a></li>
+                </ul>
+            </div>
+            <div class="toc-section">
+                <div class="toc-section-title">(Z) Supporting</div>
+                <ul>
+                    <li><a href="#Z1">Z1. IPMVP Checklist</a></li>
+                    <li><a href="#Z2">Z2. Data Quality</a></li>
+                    <li><a href="#Z3">Z3. Document Control</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SUMMARY CARD (Streamlined) -->
+<!-- ============================================ -->
+<div class="summary-card">
+    <!-- Timeline -->
+    <div class="timeline">
+        <div class="timeline-segment baseline">
+            <div class="period">Baseline Period</div>
+            <div class="dates">Jan 2024 — Dec 2024<br>(12 months)</div>
+        </div>
+        <div class="timeline-segment implementation">
+            <div class="period">Implementation</div>
+            <div class="dates">Jan 2025<br>(VFD Install)</div>
+        </div>
+        <div class="timeline-segment reporting">
+            <div class="period">Reporting Period</div>
+            <div class="dates">Feb 2025 — Jul 2025<br>(6 months)</div>
+        </div>
+    </div>
+    
+    <!-- Key Metrics -->
+    <div class="summary-metrics">
+        <div class="summary-metric">
+            <div class="value">117,180</div>
+            <div class="label">Energy Saved (kWh)</div>
+        </div>
+        <div class="summary-metric">
+            <div class="value">38.2%</div>
+            <div class="label">Savings Rate</div>
+        </div>
+        <div class="summary-metric">
+            <div class="value">HKD 140,616</div>
+            <div class="label">Cost Savings</div>
+        </div>
+        <div class="summary-metric">
+            <div class="value">83.2 t</div>
+            <div class="label">CO₂ Avoided</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION A: PROJECT CONTEXT -->
+<!-- ============================================ -->
+<div class="section-group" id="section-A">
+    <h2>A. Project Context</h2>
+    
+    <h3 id="A1">A1. Building Overview</h3>
+    
+    <!-- Building Card -->
+    <div class="info-card">
+        <div class="info-card-grid">
+            <div>
+                <div class="info-card-title" id="building-name">[Building Name]</div>
+                <div class="info-card-subtitle">GFA: <span id="building-gfa">48,000</span> m²</div>
+                <div class="info-card-detail">Built: <span id="building-year">2008</span></div>
+            </div>
+            <div style="text-align: right;">
+                <div class="info-card-value" id="building-address">[address]</div>
+                <div class="info-card-value">[city]</div>
+                <div class="info-card-detail" id="building-coords">22.276°N, 114.171°E</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Context Cards -->
+    <div class="context-cards">
+        <div class="context-card">
+            <div class="label">Scope</div>
+            <div class="value">Retrofit Isolation:<br>All Parameters</div>
+        </div>
+        <div class="context-card">
+            <div class="label">Use Type</div>
+            <div class="value">Office</div>
+        </div>
+        <div class="context-card">
+            <div class="label">Control</div>
+            <div class="value">Owner</div>
+        </div>
+        <div class="context-card">
+            <div class="label">Thermal</div>
+            <div class="value">On-site Generation</div>
+        </div>
+    </div>
+    
+    <h3 id="A2">A2. Energy Context</h3>
+    <table>
+        <tr>
+            <th style="width: 40%;">Parameter</th>
+            <th style="width: 30%;">Value</th>
+            <th>Notes</th>
+        </tr>
+        <tr>
+            <td>Annual Building Energy</td>
+            <td><strong>8,400,000 kWh</strong></td>
+            <td>CLP utility meter (2024)</td>
+        </tr>
+        <tr>
+            <td>Building EUI</td>
+            <td><strong>175 kWh/m²/year</strong></td>
+            <td>Typical for Grade A office in HK</td>
+        </tr>
+        <tr>
+            <td>ECM Boundary Energy (Baseline)</td>
+            <td><strong>589,800 kWh</strong></td>
+            <td>CHW pump circuit (12 months)</td>
+        </tr>
+        <tr>
+            <td>ECM Share of Building</td>
+            <td><strong>7.0%</strong></td>
+            <td>Within typical 5-10% range for CHW pumping</td>
+        </tr>
+        <tr>
+            <td>Electricity Tariff</td>
+            <td><strong>HKD 1.20/kWh</strong></td>
+            <td>CLP Commercial Rate (blended average)</td>
+        </tr>
+    </table>
+    
+    <h3 id="A3">A3. Use Case Reference</h3>
+    <div class="use-case-card">
+        <div class="use-case-header">
+            <div>
+                <span class="use-case-id">T3_011</span>
+                <div class="use-case-name">Pump VFD Retrofit</div>
+            </div>
+            <div style="text-align: right; font-size: 9pt; color: var(--muted);">
+                Standard: ASHRAE Guideline 36<br>
+                End Use: Hydronic Distribution
+            </div>
+        </div>
+        
+        <div class="use-case-grid">
+            <div class="use-case-section">
+                <h4>Expected Savings Range</h4>
+                <div class="savings-range">
+                    <span class="range">30 – 50%</span>
+                    <span class="unit">pumping energy</span>
+                </div>
+                <p style="font-size: 9pt; color: var(--muted); margin: 0;">
+                    Savings depend on baseline pump operation, load variability, and control strategy implementation.
+                </p>
+            </div>
+            <div class="use-case-section">
+                <h4>Prerequisites Met</h4>
+                <ul class="prerequisite-list">
+                    <li>Constant-speed hydronic pumps</li>
+                    <li>Variable cooling loads confirmed</li>
+                    <li>Pump curves available</li>
+                    <li>VFD-rated motors verified</li>
+                    <li>BMS integration points identified</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION B: M&V PLAN -->
+<!-- ============================================ -->
+<div class="section-group" id="section-B">
+    <h2>B. M&V Plan</h2>
+    
+    <h3 id="B1">B1. ECM Scope</h3>
+    <table>
+        <tr>
+            <th style="width: 25%;">Parameter</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Equipment</td>
+            <td>3 × 37 kW Primary CHW Pumps + 3 × 22 kW Secondary CHW Pumps</td>
+        </tr>
+        <tr>
+            <td>Total Capacity</td>
+            <td><strong>177 kW</strong></td>
+        </tr>
+        <tr>
+            <td>Baseline Control</td>
+            <td>On/off staging, constant speed, constant flow</td>
+        </tr>
+        <tr>
+            <td>Post-Retrofit Control</td>
+            <td>VFD with differential pressure reset, variable flow (30-100%)</td>
+        </tr>
+        <tr>
+            <td>Contractor</td>
+            <td>[Contractor name]</td>
+        </tr>
+        <tr>
+            <td>Completion Date</td>
+            <td>31 January 2025</td>
+        </tr>
+    </table>
+    
+    <h3 id="B2">B2. Measurement Boundary</h3>
+    <div class="boundary-diagram">
+        <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Building outline -->
+            <rect x="50" y="30" width="600" height="220" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" rx="8"/>
+            <text x="350" y="55" text-anchor="middle" font-size="14" font-weight="bold" fill="#475569">BUILDING MAIN METER (8,400,000 kWh/yr)</text>
+            
+            <!-- Other loads -->
+            <rect x="70" y="70" width="250" height="80" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1" rx="4"/>
+            <text x="195" y="100" text-anchor="middle" font-size="11" fill="#64748b">Other Building Loads</text>
+            <text x="195" y="120" text-anchor="middle" font-size="9" fill="#94a3b8">Chillers, AHUs, Lighting, etc.</text>
+            <text x="195" y="138" text-anchor="middle" font-size="9" fill="#94a3b8">~7,810,000 kWh/yr (93%)</text>
+            
+            <!-- ECM Boundary (highlighted) -->
+            <rect x="340" y="70" width="290" height="160" fill="rgba(34, 76, 46, 0.1)" stroke="#224C2E" stroke-width="3" stroke-dasharray="8,4" rx="8"/>
+            <text x="485" y="95" text-anchor="middle" font-size="12" font-weight="bold" fill="#224C2E">ECM BOUNDARY</text>
+            
+            <!-- Submeter -->
+            <rect x="360" y="110" width="120" height="40" fill="#2E86AB" stroke="#1e5f7a" stroke-width="2" rx="4"/>
+            <text x="420" y="125" text-anchor="middle" font-size="9" fill="white" font-weight="bold">MTR-PUMP-CHW</text>
+            <text x="420" y="140" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.8)">Submeter</text>
+            
+            <!-- Pumps -->
+            <rect x="360" y="165" width="250" height="50" fill="#dbeafe" stroke="#3b82f6" stroke-width="1" rx="4"/>
+            <text x="485" y="185" text-anchor="middle" font-size="10" fill="#1e40af">Primary + Secondary CHW Pumps</text>
+            <text x="485" y="200" text-anchor="middle" font-size="9" fill="#3b82f6">3×37kW + 3×22kW = 177 kW</text>
+            
+            <!-- Arrow -->
+            <path d="M 420 150 L 420 165" stroke="#2E86AB" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#2E86AB"/>
+                </marker>
+            </defs>
+            
+            <!-- Legend -->
+            <rect x="70" y="170" width="15" height="15" fill="rgba(34, 76, 46, 0.1)" stroke="#224C2E" stroke-width="2" stroke-dasharray="4,2"/>
+            <text x="95" y="182" font-size="9" fill="#475569">= IPMVP Option B Measurement Boundary</text>
+        </svg>
+    </div>
+    
+    <table>
+        <tr>
+            <th style="width: 25%;">Boundary Element</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>IPMVP Option</td>
+            <td><strong>Option B</strong> — Retrofit Isolation: All Parameters Measured</td>
+        </tr>
+        <tr>
+            <td>Meter ID</td>
+            <td>MTR-PUMP-CHW — dedicated kWh meter on pump circuit</td>
+        </tr>
+        <tr>
+            <td>Metering Equipment</td>
+            <td>Schneider PM5350, Class 0.5S accuracy, 15-min intervals</td>
+        </tr>
+        <tr>
+            <td>Boundary Justification</td>
+            <td>Pump circuit isolated from other loads; single point of measurement captures all ECM-affected energy</td>
+        </tr>
+    </table>
+    
+    <h3 id="B3">B3. Independent Variables</h3>
+    <table>
+        <tr>
+            <th style="width: 20%;">Variable</th>
+            <th style="width: 30%;">Source</th>
+            <th>Rationale</th>
+        </tr>
+        <tr>
+            <td><strong>CDD₁₈</strong></td>
+            <td>VHHH (HK International Airport)</td>
+            <td>Pump load correlates with cooling demand; CDD captures building thermal load driver</td>
+        </tr>
+    </table>
+    
+    <h3 id="B4">B4. Key Dates</h3>
+    <table>
+        <tr>
+            <th style="width: 25%;">Period</th>
+            <th style="width: 30%;">Dates</th>
+            <th>Duration</th>
+        </tr>
+        <tr>
+            <td>Baseline Period</td>
+            <td>1 Jan 2024 — 31 Dec 2024</td>
+            <td>12 months</td>
+        </tr>
+        <tr>
+            <td>Implementation</td>
+            <td>1 Jan 2025 — 31 Jan 2025</td>
+            <td>1 month</td>
+        </tr>
+        <tr>
+            <td>Reporting Period</td>
+            <td>1 Feb 2025 — 31 Jul 2025</td>
+            <td>6 months</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION C: BASELINE ANALYSIS -->
+<!-- ============================================ -->
+<div class="section-group" id="section-C">
+    <h2>C. Baseline Analysis</h2>
+    
+    <h3 id="C1">C1. Baseline Data</h3>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th style="text-align: right;">CDD₁₈</th>
+            <th style="text-align: right;">Energy (kWh)</th>
+            <th style="text-align: right;">Days</th>
+            <th style="text-align: right;">kWh/day</th>
+        </tr>
+        <script>
+            DATA.baseline.forEach(d => {
+                document.write(`<tr>
+                    <td>${d.month}</td>
+                    <td style="text-align: right;">${d.cdd}</td>
+                    <td style="text-align: right;">${fmt.num(d.kwh)}</td>
+                    <td style="text-align: right;">${d.days}</td>
+                    <td style="text-align: right;">${fmt.num(d.kwh/d.days, 0)}</td>
+                </tr>`);
+            });
+            const baselineTotal = DATA.baseline.reduce((s,d) => s + d.kwh, 0);
+            const baselineCDD = DATA.baseline.reduce((s,d) => s + d.cdd, 0);
+            document.write(`<tr style="font-weight: bold; background: var(--light-bg);">
+                <td>TOTAL</td>
+                <td style="text-align: right;">${fmt.num(baselineCDD)}</td>
+                <td style="text-align: right;">${fmt.num(baselineTotal)}</td>
+                <td style="text-align: right;">366</td>
+                <td style="text-align: right;">${fmt.num(baselineTotal/366, 0)}</td>
+            </tr>`);
+        </script>
+    </table>
+    
+    <!-- Baseline Charts -->
+    <div class="chart-container">
+        <div class="chart-title">C1.1 Baseline Monthly Consumption & Weather</div>
+        <div class="chart-wrapper">
+            <canvas id="chart-baseline-consumption"></canvas>
+        </div>
+    </div>
+    
+    <h3 id="C2">C2. Baseline Model</h3>
+    
+    <div class="formula-box">
+        <div class="formula">Pump_kWh = 31,265 + 101.0 × CDD₁₈</div>
+        <div class="variables">
+            Where: CDD₁₈ = Cooling Degree Days (base 18°C) from VHHH weather station
+        </div>
+    </div>
+    
+    <div class="model-stats">
+        <div class="model-stat pass">
+            <div class="value">0.992</div>
+            <div class="label">R²</div>
+            <div class="threshold">≥ 0.75 required</div>
+        </div>
+        <div class="model-stat pass">
+            <div class="value">5.8%</div>
+            <div class="label">CV(RMSE)</div>
+            <div class="threshold">≤ 15% required</div>
+        </div>
+        <div class="model-stat pass">
+            <div class="value">0.02%</div>
+            <div class="label">NMBE</div>
+            <div class="threshold">±0.5% required</div>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart-title">C2.1 Baseline Model: Actual vs Predicted</div>
+        <div class="chart-wrapper">
+            <canvas id="chart-baseline-model"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION D: REPORTING ANALYSIS -->
+<!-- ============================================ -->
+<div class="section-group" id="section-D">
+    <h2>D. Reporting Analysis</h2>
+    
+    <h3 id="D1">D1. Reporting Data</h3>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th style="text-align: right;">CDD₁₈</th>
+            <th style="text-align: right;">Measured (kWh)</th>
+            <th style="text-align: right;">Adjusted Baseline (kWh)</th>
+            <th style="text-align: right;">Avoided (kWh)</th>
+        </tr>
+        <script>
+            DATA.results.monthly.forEach((d, i) => {
+                document.write(`<tr>
+                    <td>${d.month}</td>
+                    <td style="text-align: right;">${DATA.reporting[i].cdd}</td>
+                    <td style="text-align: right;">${fmt.num(d.measured)}</td>
+                    <td style="text-align: right;">${fmt.num(d.adjusted)}</td>
+                    <td style="text-align: right; color: var(--avoided); font-weight: 600;">${fmt.num(d.avoided)}</td>
+                </tr>`);
+            });
+            document.write(`<tr style="font-weight: bold; background: var(--light-bg);">
+                <td>TOTAL</td>
+                <td style="text-align: right;">${fmt.num(DATA.reporting.reduce((s,d) => s + d.cdd, 0))}</td>
+                <td style="text-align: right;">${fmt.num(DATA.results.cumulative.measured)}</td>
+                <td style="text-align: right;">${fmt.num(DATA.results.cumulative.adjustedBaseline)}</td>
+                <td style="text-align: right; color: var(--avoided);">${fmt.num(DATA.results.cumulative.avoided)}</td>
+            </tr>`);
+        </script>
+    </table>
+    
+    <h3 id="D2">D2. Adjusted Baseline vs Measured</h3>
+    <div class="chart-container">
+        <div class="chart-title">D2.1 Pre/Post Comparison: Baseline vs Actual Performance (6 Months Each)</div>
+        <div class="chart-wrapper" style="height: 350px;">
+            <canvas id="chart-reporting-comparison"></canvas>
+        </div>
+        <div style="margin-top: 10px; font-size: 10pt; color: var(--muted); text-align: center;">
+            <span style="display: inline-block; width: 12px; height: 12px; background: var(--baseline); margin-right: 4px; vertical-align: middle;"></span>
+            Baseline Prediction
+            <span style="display: inline-block; width: 12px; height: 12px; background: var(--measured); margin-left: 15px; margin-right: 4px; vertical-align: middle;"></span>
+            Actual Measured
+            <span style="display: inline-block; width: 12px; height: 12px; background: rgba(34, 76, 46, 0.3); border: 2px solid var(--avoided); margin-left: 15px; margin-right: 4px; vertical-align: middle;"></span>
+            Energy Savings (Post-Adjustment)
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION E: SAVINGS RESULTS -->
+<!-- ============================================ -->
+<div class="section-group" id="section-E">
+    <h2>E. Savings Results</h2>
+    
+    <h3 id="E1">E1. Summary Metrics</h3>
+    <div class="metrics-grid">
+        <div class="metric-card highlight">
+            <div class="value">117,180</div>
+            <div class="unit">kWh</div>
+            <div class="label">Energy Avoided</div>
+        </div>
+        <div class="metric-card">
+            <div class="value">38.2%</div>
+            <div class="unit">&nbsp;</div>
+            <div class="label">Savings Rate</div>
+        </div>
+        <div class="metric-card">
+            <div class="value">140,616</div>
+            <div class="unit">HKD</div>
+            <div class="label">Cost Savings</div>
+        </div>
+        <div class="metric-card">
+            <div class="value">83.2</div>
+            <div class="unit">tonnes CO₂</div>
+            <div class="label">Emissions Avoided</div>
+        </div>
+    </div>
+    
+    <h3 id="E2">E2. Benchmark Comparison</h3>
+    <div class="benchmark-container">
+        <div class="benchmark-header">
+            <div>
+                <div class="benchmark-label">Use Case T3_011: Pump VFD Retrofit</div>
+                <div style="font-size: 10pt; color: var(--muted);">Expected savings range: 30-50%</div>
+            </div>
+            <div class="benchmark-value">Measured: 38.2%</div>
+        </div>
+        
+        <!-- Visual benchmark bar -->
+        <div class="benchmark-bar">
+            <!-- Expected range (30-50%) mapped to 0-100% of bar width -->
+            <div class="benchmark-range" style="left: 10%; width: 80%;"></div>
+            <!-- Measured value (38.2%) - position: (38.2-20)/(60-20) = 45.5% of bar -->
+            <div class="benchmark-marker" style="left: 45.5%;">38%</div>
+        </div>
+        <div class="benchmark-labels">
+            <span>20%</span>
+            <span>30%</span>
+            <span>40%</span>
+            <span>50%</span>
+            <span>60%</span>
+        </div>
+        
+        <div class="benchmark-assessment">
+            <strong>✓ Within Expected Range:</strong> Measured savings of 38.2% falls within the 30-50% expected range for Pump VFD Retrofit (T3_011). Performance is consistent with use case expectations.
+        </div>
+    </div>
+    
+    <h3 id="E3">E3. Monthly Breakdown</h3>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th style="text-align: right;">Adjusted Baseline</th>
+            <th style="text-align: right;">Measured</th>
+            <th style="text-align: right;">Avoided</th>
+            <th style="text-align: right;">Savings %</th>
+        </tr>
+        <script>
+            DATA.results.monthly.forEach(d => {
+                document.write(`<tr>
+                    <td>${d.month}</td>
+                    <td style="text-align: right;">${fmt.num(d.adjusted)} kWh</td>
+                    <td style="text-align: right;">${fmt.num(d.measured)} kWh</td>
+                    <td style="text-align: right; color: var(--avoided); font-weight: 600;">${fmt.num(d.avoided)} kWh</td>
+                    <td style="text-align: right;">${fmt.pct(d.pct)}</td>
+                </tr>`);
+            });
+        </script>
+    </table>
+    
+    <div class="chart-container">
+        <div class="chart-title">E3.1 Cumulative Savings Over Reporting Period</div>
+        <div class="chart-wrapper">
+            <canvas id="chart-cumulative-savings"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION Y: UNCERTAINTY ANALYSIS -->
+<!-- ============================================ -->
+<div class="section-group" id="section-Y">
+    <h2>Y. Uncertainty Analysis</h2>
+    
+    <h3 id="Y1">Y1. Model Quality</h3>
+    <table>
+        <tr>
+            <th style="width: 25%;">Metric</th>
+            <th style="width: 20%;">Value</th>
+            <th style="width: 20%;">Threshold</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>R² (Coefficient of Determination)</td>
+            <td>0.992</td>
+            <td>≥ 0.75</td>
+            <td style="color: var(--success); font-weight: 600;">✓ Pass</td>
+        </tr>
+        <tr>
+            <td>CV(RMSE)</td>
+            <td>5.8%</td>
+            <td>≤ 15%</td>
+            <td style="color: var(--success); font-weight: 600;">✓ Pass</td>
+        </tr>
+        <tr>
+            <td>NMBE</td>
+            <td>0.02%</td>
+            <td>±0.5%</td>
+            <td style="color: var(--success); font-weight: 600;">✓ Pass</td>
+        </tr>
+    </table>
+    
+    <h3 id="Y2">Y2. Fractional Savings Uncertainty (FSU)</h3>
+    <div class="formula-box">
+        <div class="formula">FSU = (t × CV(RMSE) / F) × √(1/n + 1/m) × (1 / savings_fraction)</div>
+        <div class="variables">
+            Where: t = 1.645 (90% CI), CV(RMSE) = 5.8%, F = 1.0, n = 12 months, m = 6 months, savings = 38.2%
+        </div>
+    </div>
+    
+    <table>
+        <tr>
+            <th style="width: 40%;">Parameter</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>t-statistic (90% confidence)</td>
+            <td>1.645</td>
+        </tr>
+        <tr>
+            <td>CV(RMSE)</td>
+            <td>5.8%</td>
+        </tr>
+        <tr>
+            <td>Baseline observations (n)</td>
+            <td>12</td>
+        </tr>
+        <tr>
+            <td>Reporting observations (m)</td>
+            <td>6</td>
+        </tr>
+        <tr>
+            <td>Savings fraction</td>
+            <td>0.382</td>
+        </tr>
+        <tr style="font-weight: bold; background: var(--light-bg);">
+            <td>Fractional Savings Uncertainty (FSU)</td>
+            <td>12.5%</td>
+        </tr>
+    </table>
+    
+    <h3 id="Y3">Y3. Confidence Interval</h3>
+    
+    <div class="ci-chart-container">
+        <div class="ci-visual">
+            <!-- Axis -->
+            <div class="ci-axis"></div>
+            
+            <!-- Range bar (positioned based on data) -->
+            <div class="ci-range-bar" style="left: 15%; width: 70%;"></div>
+            
+            <!-- Lower bound marker and label -->
+            <div class="ci-bound-label" style="left: 15%;">102,533 kWh</div>
+            
+            <!-- Point estimate marker -->
+            <div class="ci-point-marker" style="left: 50%;"></div>
+            <div class="ci-point-label" style="left: 50%;">117,180 kWh</div>
+            
+            <!-- Upper bound marker and label -->
+            <div class="ci-bound-label" style="left: 85%;">131,828 kWh</div>
+        </div>
+        
+        <div class="ci-summary">
+            <div class="ci-summary-item">
+                <div class="label">Lower Bound (90% CI)</div>
+                <div class="value">102,533 kWh</div>
+            </div>
+            <div class="ci-summary-item highlight">
+                <div class="label">Point Estimate</div>
+                <div class="value">117,180 kWh</div>
+            </div>
+            <div class="ci-summary-item">
+                <div class="label">Upper Bound (90% CI)</div>
+                <div class="value">131,828 kWh</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="note">
+        <strong>Detectability:</strong> Savings are statistically significant. The 90% confidence interval (102,533 – 131,828 kWh) excludes zero, confirming that measured savings are distinguishable from measurement uncertainty.
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION Z: SUPPORTING DOCUMENTATION -->
+<!-- ============================================ -->
+<div class="section-group" id="section-Z">
+    <h2>Z. Supporting Documentation</h2>
+    
+    <h3 id="Z1">Z1. IPMVP Option B Compliance Checklist</h3>
+    <ul class="checklist">
+        <li class="pass"><span class="checklist-icon">✓</span> Retrofit isolation boundary defined and documented</li>
+        <li class="pass"><span class="checklist-icon">✓</span> All energy parameters measured (not stipulated)</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Baseline period ≥ 12 months</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Independent variable identified and justified (CDD₁₈)</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Baseline model validated (R² ≥ 0.75, CV(RMSE) ≤ 15%, NMBE ≤ ±0.5%)</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Reporting period ≥ 6 months post-implementation</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Adjustments applied for reporting period conditions</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Uncertainty quantified per ASHRAE Guideline 14</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Savings detectability confirmed (CI excludes zero)</li>
+        <li class="pass"><span class="checklist-icon">✓</span> Non-routine adjustments documented (none required)</li>
+    </ul>
+    
+    <h3 id="Z2">Z2. Data Quality</h3>
+    <table>
+        <tr>
+            <th style="width: 30%;">Data Source</th>
+            <th style="width: 25%;">Coverage</th>
+            <th>Quality Notes</th>
+        </tr>
+        <tr>
+            <td>Baseline Energy (MTR-PUMP-CHW)</td>
+            <td>100% (12/12 months)</td>
+            <td>No data gaps; meter calibrated Jan 2024</td>
+        </tr>
+        <tr>
+            <td>Reporting Energy (MTR-PUMP-CHW)</td>
+            <td>100% (6/6 months)</td>
+            <td>No data gaps; same meter</td>
+        </tr>
+        <tr>
+            <td>Weather Data (VHHH)</td>
+            <td>100%</td>
+            <td>Hong Kong Observatory official data</td>
+        </tr>
+    </table>
+    
+    <h3 id="Z3">Z3. Document Control</h3>
+    <table>
+        <tr>
+            <th style="width: 15%;">Version</th>
+            <th style="width: 20%;">Date</th>
+            <th style="width: 25%;">Author</th>
+            <th>Changes</th>
+        </tr>
+        <tr>
+            <td>v0.1</td>
+            <td>2026-01-04</td>
+            <td>[Analyst name]</td>
+            <td>Initial draft</td>
+        </tr>
+        <tr>
+            <td>v0.2</td>
+            <td>2026-01-04</td>
+            <td>[Analyst name]</td>
+            <td>Added Section A (Project Context), Use Case Reference, corrected energy proportions</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ============================================ -->
+<!-- FOOTER -->
+<!-- ============================================ -->
+<div class="doc-footer">
+    <p>Generated by Gaiamesh M&V Analytics Platform</p>
+    <p>Document: D0301 M&V Analysis — Option B | HK-25-001.01 | v0.2</p>
+</div>
+
+<!-- ============================================ -->
+<!-- CHART SCRIPTS -->
+<!-- ============================================ -->
+<script>
+// Chart defaults
+Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#475569';
+
+// C1.1 Baseline Monthly Consumption with CDD overlay
+new Chart(document.getElementById('chart-baseline-consumption'), {
+    type: 'bar',
+    data: {
+        labels: DATA.baseline.map(d => d.month.split(' ')[0]),
+        datasets: [
+            {
+                label: 'Energy (kWh)',
+                data: DATA.baseline.map(d => d.kwh),
+                backgroundColor: 'rgba(46, 134, 171, 0.7)',
+                borderColor: '#2E86AB',
+                borderWidth: 1,
+                yAxisID: 'y',
+            },
+            {
+                label: 'CDD₁₈',
+                data: DATA.baseline.map(d => d.cdd),
+                type: 'line',
+                borderColor: '#E76F51',
+                backgroundColor: 'rgba(231, 111, 81, 0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: '#E76F51',
+                fill: false,
+                yAxisID: 'y1',
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                position: 'left',
+                beginAtZero: true,
+                title: { display: true, text: 'kWh' }
+            },
+            y1: {
+                type: 'linear',
+                position: 'right',
+                beginAtZero: true,
+                title: { display: true, text: 'CDD₁₈' },
+                grid: { drawOnChartArea: false },
+            }
+        }
+    }
+});
+
+// C2.1 Baseline Model Scatter
+const modelData = DATA.baseline.map(d => ({
+    x: d.cdd,
+    y: d.kwh
+}));
+const modelLine = [
+    { x: 0, y: DATA.model.intercept },
+    { x: 420, y: DATA.model.intercept + DATA.model.cddSlope * 420 }
+];
+
+new Chart(document.getElementById('chart-baseline-model'), {
+    type: 'scatter',
+    data: {
+        datasets: [
+            {
+                label: 'Actual',
+                data: modelData,
+                backgroundColor: '#2E86AB',
+                pointRadius: 6,
+            },
+            {
+                label: 'Model',
+                data: modelLine,
+                type: 'line',
+                borderColor: '#E76F51',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: { display: true, text: 'CDD₁₈' },
+                min: 0,
+                max: 450
+            },
+            y: {
+                title: { display: true, text: 'kWh' },
+                min: 25000,
+                max: 80000
+            }
+        }
+    }
+});
+
+// D2.1 Pre/Post Comparison Line Chart with Savings Area
+// Build combined data: 6 months pre-adjustment (Jul-Dec 2024) + 6 months post-adjustment (Feb-Jul 2025)
+const preAdjustmentData = DATA.baseline.slice(6, 12); // Jul-Dec 2024
+const postAdjustmentData = DATA.results.monthly; // Feb-Jul 2025
+
+const comparisonLabels = [
+    ...preAdjustmentData.map(d => d.month.split(' ')[0] + ' 24'),
+    ...postAdjustmentData.map(d => d.month.split(' ')[0] + ' 25')
+];
+
+// For pre-adjustment: baseline prediction and actual are same (or close)
+// For post-adjustment: baseline is adjusted baseline, actual is measured
+const baselineLineData = [
+    ...preAdjustmentData.map(d => d.kwh), // Pre: actual baseline consumption
+    ...postAdjustmentData.map(d => d.adjusted) // Post: adjusted baseline prediction
+];
+
+const actualLineData = [
+    ...preAdjustmentData.map(d => d.kwh), // Pre: actual = baseline (same line)
+    ...postAdjustmentData.map(d => d.measured) // Post: actual measured (lower)
+];
+
+// Create a custom plugin to fill the area between lines for all data points
+const savingsAreaPlugin = {
+    id: 'savingsAreaFill',
+    beforeDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const meta0 = chart.getDatasetMeta(0); // Baseline
+        const meta1 = chart.getDatasetMeta(1); // Actual
+        
+        // Fill area between lines for all points
+        ctx.save();
+        ctx.fillStyle = 'rgba(34, 76, 46, 0.25)';
+        ctx.beginPath();
+        
+        // Start from first point on baseline line
+        let started = false;
+        for (let i = 0; i < meta0.data.length; i++) {
+            const point = meta0.data[i];
+            if (point && !point.skip) {
+                if (!started) {
+                    ctx.moveTo(point.x, point.y);
+                    started = true;
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            }
+        }
+        
+        // Go back along actual line (reverse)
+        for (let i = meta1.data.length - 1; i >= 0; i--) {
+            const point = meta1.data[i];
+            if (point && !point.skip) {
+                ctx.lineTo(point.x, point.y);
+            }
+        }
+        
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+};
+
+new Chart(document.getElementById('chart-reporting-comparison'), {
+    type: 'line',
+    plugins: [savingsAreaPlugin],
+    data: {
+        labels: comparisonLabels,
+        datasets: [
+            {
+                label: 'Baseline Prediction',
+                data: baselineLineData,
+                borderColor: '#2E86AB',
+                backgroundColor: 'rgba(46, 134, 171, 0.1)',
+                borderWidth: 2.5,
+                pointRadius: 5,
+                pointBackgroundColor: '#2E86AB',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                fill: false,
+                tension: 0.2,
+            },
+            {
+                label: 'Actual Measured',
+                data: actualLineData,
+                borderColor: '#E76F51',
+                backgroundColor: 'rgba(231, 111, 81, 0.1)',
+                borderWidth: 2.5,
+                pointRadius: 5,
+                pointBackgroundColor: '#E76F51',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                fill: false,
+                tension: 0.2,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) label += ': ';
+                        if (context.parsed.y !== null) {
+                            label += fmt.num(context.parsed.y) + ' kWh';
+                        }
+                        return label;
+                    },
+                    afterBody: function(context) {
+                        const index = context[0].dataIndex;
+                        // Only show savings for post-adjustment period (index >= 6)
+                        if (index >= 6 && context.length >= 2) {
+                            const baseline = context[0].raw;
+                            const actual = context[1].raw;
+                            if (baseline && actual) {
+                                const savings = baseline - actual;
+                                const pct = ((savings / baseline) * 100).toFixed(1);
+                                return ['', '💚 Savings: ' + fmt.num(savings) + ' kWh (' + pct + '%)'];
+                            }
+                        }
+                        return [];
+                    }
+                }
+            },
+            annotation: {
+                annotations: {
+                    preZone: {
+                        type: 'box',
+                        xMin: -0.5,
+                        xMax: 5.5,
+                        backgroundColor: 'rgba(46, 134, 171, 0.05)',
+                        borderWidth: 0,
+                        label: {
+                            display: true,
+                            content: 'Pre-Adjustment',
+                            position: { x: 'center', y: 'start' },
+                            font: { size: 11, weight: '600' },
+                            color: '#2E86AB'
+                        }
+                    },
+                    postZone: {
+                        type: 'box',
+                        xMin: 5.5,
+                        xMax: 11.5,
+                        backgroundColor: 'rgba(34, 76, 46, 0.03)',
+                        borderWidth: 0,
+                        label: {
+                            display: true,
+                            content: 'Post-Adjustment',
+                            position: { x: 'center', y: 'start' },
+                            font: { size: 11, weight: '600' },
+                            color: '#224C2E'
+                        }
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: true,
+                    color: 'rgba(0,0,0,0.05)'
+                },
+                ticks: {
+                    maxRotation: 0
+                }
+            },
+            y: {
+                beginAtZero: false,
+                min: 15000,
+                max: 80000,
+                title: { 
+                    display: true, 
+                    text: 'Energy Consumption (kWh)',
+                    font: { weight: '600' }
+                },
+                grid: {
+                    color: 'rgba(0,0,0,0.08)'
+                }
+            }
+        }
+    }
+});
+
+// E3.1 Cumulative Savings
+const cumulativeSavings = [];
+let cumSum = 0;
+DATA.results.monthly.forEach(d => {
+    cumSum += d.avoided;
+    cumulativeSavings.push(cumSum);
+});
+
+new Chart(document.getElementById('chart-cumulative-savings'), {
+    type: 'line',
+    data: {
+        labels: DATA.results.monthly.map(d => d.month.split(' ')[0]),
+        datasets: [{
+            label: 'Cumulative Savings',
+            data: cumulativeSavings,
+            backgroundColor: 'rgba(34, 76, 46, 0.2)',
+            borderColor: '#224C2E',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Cumulative kWh Saved' }
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
